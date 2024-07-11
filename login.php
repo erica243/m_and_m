@@ -40,7 +40,7 @@
 			},
 			success:function(resp){
 				if(resp == 1){
-					location.href ='<?php echo isset($_GET['redirect']) ? $_GET['redirect'] : 'index.php?page=home' ?>';
+					location.href ='<?php echo isset($_GET['redirect']) ? $_GET['redirect'] : 'index2.php?page=home' ?>';
 				}else{
 					$('#login-frm').prepend('<div class="alert alert-danger">Email or password is incorrect.</div>')
 					$('#login-frm button[type="submit"]').removeAttr('disabled').html('Login');
