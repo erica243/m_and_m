@@ -1,38 +1,33 @@
-<?php include('db_connect.php');?>
+<?php include('db_connect.php'); ?>
 
 <div class="container-fluid">
-	
 	<div class="col-lg-12">
 		<div class="row">
 			<!-- FORM Panel -->
 			<div class="col-md-4">
-			<form action="" id="manage-category">
-				<div class="card">
-					<div class="card-header">
-						    Category Form
-				  	</div>
-					<div class="card-body">
+				<form action="" id="manage-category">
+					<div class="card">
+						<div class="card-header">
+							Category Form
+						</div>
+						<div class="card-body">
 							<input type="hidden" name="id">
 							<div class="form-group">
 								<label class="control-label">Category</label>
 								<input type="text" class="form-control" name="name">
 							</div>
-							
-					</div>
-							
-					<div class="card-footer">
-						<div class="row">
-							
-							<div class="col-md-12">
-								<button class="btn btn-sm btn-primary col-sm-3 offset-md-3"> Save</button>
-								<button class="btn btn-sm btn-default col-sm-3" type="button" onclick="$('#manage-category').get(0).reset()"> Cancel</button>
+						</div>
+						<div class="card-footer">
+							<div class="row">
+								<div class="col-md-12">
+									<button class="btn btn-sm btn-primary col-sm-3 offset-md-3"> Save</button>
+									<button class="btn btn-sm btn-default col-sm-3" type="button" onclick="$('#manage-category').get(0).reset()"> Cancel</button>
+								</div>
 							</div>
 						</div>
 					</div>
-				</div>
-			</form>
+				</form>
 			</div>
-			
 			<!-- FORM Panel -->
 
 			<!-- Table Panel -->
@@ -50,8 +45,8 @@
 							<tbody>
 								<?php 
 								$i = 1;
-								$cats = $conn->query("SELECT * FROM category_list order by id asc");
-								while($row=$cats->fetch_assoc()):
+								$cats = $conn->query("SELECT * FROM category_list ORDER BY id ASC");
+								while($row = $cats->fetch_assoc()):
 								?>
 								<tr>
 									<td class="text-center"><?php echo $i++ ?></td>
@@ -59,10 +54,10 @@
 										<?php echo $row['name'] ?>
 									</td>
 									<td class="text-center">
-										<button class="btn btn-sm btn-primary edit_cat" type="button" data-id="<?php echo $row['id'] ?>" data-name="<?php echo $row['name'] ?>" >Edit</button>
+										<button class="btn btn-sm btn-primary edit_cat" type="button" data-id="<?php echo $row['id'] ?>" data-name="<?php echo $row['name'] ?>">Edit</button>
 										<button class="btn btn-sm btn-danger delete_cat" type="button" data-id="<?php echo $row['id'] ?>">Delete</button>
 									</td>
-								</tr>
+								</tr>	
 								<?php endwhile; ?>
 							</tbody>
 						</table>
@@ -72,18 +67,28 @@
 			<!-- Table Panel -->
 		</div>
 	</div>	
-
 </div>
+
 <style>
-	
-	td{
+	td {
 		vertical-align: middle !important;
 	}
 </style>
+
 <script>
 	$(document).ready(function() {
-		$('#manage-category').submit(function(e){
+		$('#manage-category').submit(function(e) {
 			e.preventDefault();
+			let name = $('input[name="name"]').val().trim();
+			if (name === '') {
+				Swal.fire({
+					icon: 'error',
+					title: 'Category name is required!',
+					showConfirmButton: true,
+				});
+				return false;
+			}
+
 			$.ajax({
 				url: 'ajax.php?action=save_category',
 				data: new FormData($(this)[0]),
@@ -116,14 +121,14 @@
 			});
 		});
 
-		$('.edit_cat').click(function(){
+		$('.edit_cat').click(function() {
 			var cat = $('#manage-category');
 			cat.get(0).reset();
 			cat.find("[name='id']").val($(this).attr('data-id'));
 			cat.find("[name='name']").val($(this).attr('data-name'));
 		});
 
-		$('.delete_cat').click(function(){
+		$('.delete_cat').click(function() {
 			var id = $(this).attr('data-id');
 			Swal.fire({
 				title: 'Are you sure?',
@@ -144,7 +149,7 @@
 			$.ajax({
 				url: 'ajax.php?action=delete_category',
 				method: 'POST',
-				data: {id: id},
+				data: { id: id },
 				success: function(resp) {
 					if (resp == 1) {
 						Swal.fire({
