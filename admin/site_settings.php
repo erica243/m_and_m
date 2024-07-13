@@ -23,7 +23,7 @@ if($qry->num_rows > 0){
                     <label for="contact" class="control-label">Contact</label>
                     <input type="text" class="form-control" id="contact" name="contact" value="<?php echo isset($meta['contact']) ? $meta['contact'] : '' ?>" required>
                 </div>
-                <div class="form-group">
+                  <div class="form-group">
                     <label for="about" class="control-label">About Content</label>
                     <textarea name="about" class="text-jqte"><?php echo isset($meta['about_content']) ? $meta['about_content'] : '' ?></textarea>
                 </div>
