@@ -11,7 +11,7 @@
                         <th>Email</th>
                         <th>Mobile</th>
                         <th>Order Date</th>
-                        <th>Delivery Date</th>
+                        <th>Delivery Method</th>
                         <th>Status</th>
                         <th></th>
                     </tr>
@@ -31,7 +31,7 @@
                          <td><?php echo $row['email'] ?></td>
                          <td><?php echo $row['mobile'] ?></td>
                          <td><?php echo $row['order_date'] ?></td>
-                         <td><?php echo $row['delivery_date'] ?></td>
+                         <td><?php echo $row['delivery_met'] ?></td>
                          <?php if($row['status'] == 1): ?>
                              <td class="text-center"><span class="badge badge-success">Confirmed</span></td>
                          <?php else: ?>
