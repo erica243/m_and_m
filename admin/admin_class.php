@@ -88,25 +88,32 @@ Class Action {
 			return 1;
 		}
 	}
-	function signup(){
-		extract($_POST);
-		$password = password_hash($password, PASSWORD_DEFAULT);
-		$data = " first_name = '$first_name' ";
-		$data .= ", last_name = '$last_name' ";
-		$data .= ", mobile = '$mobile' ";
-		$data .= ", address = '$address' ";
-		$data .= ", email = '$email' ";
-		$data .= ", password = '$password' ";
-		$chk = $this->db->query("SELECT * FROM user_info where email = '$email' ")->num_rows;
-		if($chk > 0){
-			return 2;
-			exit;
-		}
-			$save = $this->db->query("INSERT INTO user_info set ".$data);
-		if($save){
-			$login = $this->login2();
-			return 1;
-		}
+	public function signup() {
+        // Get the POST data
+        $first_name = $_POST['first_name'];
+        $last_name = $_POST['last_name'];
+        $mobile = $_POST['mobile'];
+        $address = $_POST['address'];
+        $email = $_POST['email'];
+        $password = password_hash($_POST['password'], PASSWORD_DEFAULT); // Hash the password
+
+        // Check if the email already exists
+        $stmt = $this->conn->prepare("SELECT * FROM users WHERE email = ?");
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($result->num_rows > 0) {
+            return 0; // Email already exists
+        } else {
+            // Insert new user
+            $stmt = $this->conn->prepare("INSERT INTO users (first_name, last_name, mobile, address, email, password) VALUES (?, ?, ?, ?, ?, ?)");
+            $stmt->bind_param("ssssss", $first_name, $last_name, $mobile, $address, $email, $password);
+
+            if ($stmt->execute()) {
+                return 1; // Success
+            } else {
+                return 0; // Failure
 	}
 
 	public function save_settings() {
