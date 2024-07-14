@@ -39,7 +39,6 @@
                         <td><?php echo $row['address'] ?></td>
                         <td><?php echo $row['email'] ?></td>
                         <td><?php echo $row['mobile'] ?></td>
-                        <?php echo $row['order_date'] ?></td>
                 
                         <?php if($row['status'] == 1): ?>
                             <td class="text-center"><span class="badge badge-success">Confirmed</span></td>
