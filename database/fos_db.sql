@@ -73,11 +73,14 @@ INSERT INTO `category_list` (`id`, `name`) VALUES
 
 CREATE TABLE `orders` (
   `id` int(30) NOT NULL,
+ `order_number` text NOT NULL,
+ `order_date` text NOT NULL,
   `name` text NOT NULL,
   `address` text NOT NULL,
   `mobile` text NOT NULL,
   `email` text NOT NULL,
   `status` tinyint(1) NOT NULL DEFAULT 0,
+  `deliver_method` text NOT NULL,
   `created_at` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
