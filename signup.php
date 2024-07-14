@@ -1,60 +1,59 @@
-<?php session_start() ?>
 <div class="container-fluid">
-	<form action="" id="signup-frm">
-		<div class="form-group">
-			<label for="" class="control-label">Firstname</label>
-			<input type="text" name="first_name" required="" class="form-control">
-		</div>
-		<div class="form-group">
-			<label for="" class="control-label">Lastname</label>
-			<input type="text" name="last_name" required="" class="form-control">
-		</div>
-		<div class="form-group">
-    <label for="" class="control-label">Contact</label>
-    <input type="text" name="mobile" required="" class="form-control" maxlength="11" pattern="\d{11}" title="Please enter exactly 11 digits">
+    <form action="" id="signup-frm">
+        <div class="form-group">
+            <label for="" class="control-label">Firstname</label>
+            <input type="text" name="first_name" required="" class="form-control">
+        </div>
+        <div class="form-group">
+            <label for="" class="control-label">Lastname</label>
+            <input type="text" name="last_name" required="" class="form-control">
+        </div>
+        <div class="form-group">
+            <label for="" class="control-label">Contact</label>
+            <input type="text" name="mobile" required="" class="form-control" maxlength="11" pattern="\d{11}" title="Please enter exactly 11 digits">
+        </div>
+        <div class="form-group">
+            <label for="" class="control-label">Address</label>
+            <textarea cols="30" rows="3" name="address" required="" class="form-control"></textarea>
+        </div>
+        <div class="form-group">
+            <label for="" class="control-label">Email</label>
+            <input type="email" name="email" required="" class="form-control">
+        </div>
+        <div class="form-group">
+            <label for="" class="control-label">Password</label>
+            <input type="password" name="password" required="" class="form-control">
+        </div>
+        <button type="button" class="btn btn-info btn-sm">Create</button>
+    </form>
 </div>
-
-		<div class="form-group">
-			<label for="" class="control-label">Address</label>
-			<textarea cols="30" rows="3" name="address" required="" class="form-control"></textarea>
-		</div>
-		<div class="form-group">
-			<label for="" class="control-label">Email</label>
-			<input type="email" name="email" required="" class="form-control">
-		</div>
-		<div class="form-group">
-			<label for="" class="control-label">Password</label>
-			<input type="password" name="password" required="" class="form-control">
-		</div>
-		<button class="button btn btn-info btn-sm">Create</button>
-	</form>
-</div>
-
 
 <script>
-    $('#signup-frm button[type="button"]').click(function(){
+    // Handle button click to submit form
+    $('.btn-info').click(function(){
         $('#signup-frm').submit();
     });
 
+    // Form submission handling
     $('#signup-frm').submit(function(e){
         e.preventDefault();
-        $('#signup-frm button[type="button"]').attr('disabled',true).html('Saving...');
-        if($(this).find('.alert-danger').length > 0 )
+        $('.btn-info').attr('disabled', true).html('Saving...');
+        if($(this).find('.alert-danger').length > 0)
             $(this).find('.alert-danger').remove();
         $.ajax({
-            url:'admin/ajax.php?action=signup',
-            method:'POST',
-            data:$(this).serialize(),
-            error:err=>{
+            url: 'admin/ajax.php?action=signup',
+            method: 'POST',
+            data: $(this).serialize(),
+            error: err => {
                 console.log(err);
-                $('#signup-frm button[type="button"]').removeAttr('disabled').html('Create');
+                $('.btn-info').removeAttr('disabled').html('Create');
             },
-            success:function(resp){
-                if(resp == 1){
-                    location.href ='<?php echo isset($_GET['redirect']) ? $_GET['redirect'] : 'index.php?page=home' ?>';
-                }else{
+            success: function(resp) {
+                if(resp == 1) {
+                    location.href = '<?php echo isset($_GET['redirect']) ? $_GET['redirect'] : 'index.php?page=home' ?>';
+                } else {
                     $('#signup-frm').prepend('<div class="alert alert-danger">Email already exists.</div>');
-                    $('#signup-frm button[type="button"]').removeAttr('disabled').html('Create');
+                    $('.btn-info').removeAttr('disabled').html('Create');
                 }
             }
         });
