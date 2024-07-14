@@ -2,7 +2,7 @@
 include 'db_connect.php'; // Include your database connection
 
 $query = "
-    SELECT o.order_date, ol.qty, ol.order_id, p.name AS product_name, o.order_number, o.delivery_method
+    SELECT o.order_date, ol.qty, ol.order_id, p.name AS product_name, o.order_number, o.delivery_method, p.price
     FROM orders o
     JOIN order_list ol ON o.id = ol.order_id
     JOIN product_list p ON ol.product_id = p.id
@@ -30,10 +30,11 @@ if ($result->num_rows > 0): ?>
                     <tr>
                         <td><?php echo date('Y-m-d', strtotime($row['order_date'])); ?></td>
                         <td><?php echo htmlspecialchars($row['product_name']); ?></td>
-                        <td><?php echo htmlspecialchars($row['order_number']); ?></td>
-                        <td><?php echo htmlspecialchars($row['delivery_method']); ?></td>
+                        <td><?php echo htmlspecialchars($row['transaction_id']); ?></td>
+                        <td><?php echo htmlspecialchars($row['payment']); ?></td>
                         <td><?php echo htmlspecialchars($row['qty']); ?></td>
-                        <td><?php echo htmlspecialchars(number_format($row['qty'] * /* fetch price from product_list */ 0, 2)); ?></td> <!-- Replace 0 with actual price fetched -->
+                        <td><?php echo htmlspecialchars($row['total']); ?></td>
+                        <td><?php echo htmlspecialchars(number_format($row['qty'] * $row['price'], 2)); ?></td>
                     </tr>
                 <?php endwhile; ?>
             </tbody>
