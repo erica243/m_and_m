@@ -24,7 +24,7 @@
             <label for="" class="control-label">Password</label>
             <input type="password" name="password" required="" class="form-control">
         </div>
-        <button type="button" class="btn btn-info btn-sm">Create</button>
+   
     </form>
 </div>
 
