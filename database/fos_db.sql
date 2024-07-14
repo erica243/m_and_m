@@ -212,6 +212,24 @@ INSERT INTO `users` (`id`, `firstname`, `middlename`, `lastname`, `username`, `p
 (2, 'James', 'D', 'Smith', 'jsmith', 'password', '', '123 Main St', '4756463215', 'jsmith@sample.com', 2, '2024-07-03 15:29:49'),
 (3, 'Claire', '', 'Blake', 'cblake', 'password', '', '456 Elm St', '0912365487', 'cblake@mail.com', 2, '2024-07-03 10:58:53'),
 (4, 'Keneth', '', 'Ducay', 'kenethducay12', 'password', '', 'Atop-Atop, Bantayan, Cebu', '0915829634', 'kenethducay12@gmail.com', 2, '2024-07-03 09:46:18');
+--
+-- Table structure for table `reports`
+--
+
+CREATE TABLE `reports` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `order_date` datetime NOT NULL,
+  `product_name` varchar(100) NOT NULL,
+  `transaction_id` int NOT NULL,
+  `mode_of_payment` varchar(50) NOT NULL,
+  `qty` int NOT NULL,
+  `total_amount` float NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Uncomment and modify the following section to insert data into the `reports` table if needed
+-- INSERT INTO `reports` (`order_date`, `product_name`, `transaction_id`, `mode_of_payment`, `qty`, `total_amount`) VALUES
+-- (NOW(), 'Sample Product', 1, 'Cash', 2, 1200.00);
 
 COMMIT;
 
