@@ -109,34 +109,36 @@ Class Action {
 		}
 	}
 
-	function save_settings(){
-		extract($_POST);
-		$data = " name = '$name' ";
-		$data .= ", email = '$email' ";
-		$data .= ", contact = '$contact' ";
-		$data .= ", about_content = '".htmlentities(str_replace("'","&#x2019;",$about))."' ";
-		if($_FILES['img']['tmp_name'] != ''){
-						$fname = strtotime(date('y-m-d H:i')).'_'.$_FILES['img']['name'];
-						$move = move_uploaded_file($_FILES['img']['tmp_name'],'../assets/img/'. $fname);
-					$data .= ", cover_img = '$fname' ";
+	public function save_settings() {
+        global $conn;
 
-		}
-		
-		// echo "INSERT INTO system_settings set ".$data;
-		$chk = $this->db->query("SELECT * FROM system_settings");
-		if($chk->num_rows > 0){
-			$save = $this->db->query("UPDATE system_settings set ".$data." where id =".$chk->fetch_array()['id']);
-		}else{
-			$save = $this->db->query("INSERT INTO system_settings set ".$data);
-		}
-		if($save){
-		$query = $this->db->query("SELECT * FROM system_settings limit 1")->fetch_array();
-		foreach ($query as $key => $value) {
-			if(!is_numeric($key))
-				$_SESSION['setting_'.$key] = $value;
-		}
+        $name = $_POST['name'];
+        $email = $_POST['email'];
+        $contact = $_POST['contact'];
+        $about_content = $_POST['about'];
 
-			return 1;
+        // Handle image upload
+        $imgName = '';
+        if (isset($_FILES['img']) && $_FILES['img']['error'] == UPLOAD_ERR_OK) {
+            $imgName = $_FILES['img']['name'];
+            move_uploaded_file($_FILES['img']['tmp_name'], '../assets/img/' . $imgName);
+        } else {
+            // Handle case where no image is uploaded or keep the existing one
+            $qry = $conn->query("SELECT cover_img FROM system_settings LIMIT 1");
+            $row = $qry->fetch_assoc();
+            $imgName = $row['cover_img'];
+        }
+
+        // Update the settings
+        $sql = "UPDATE system_settings SET name = ?, email = ?, contact = ?, about_content = ?, cover_img = ? WHERE id = 1";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param('sssss', $name, $email, $contact, $about_content, $imgName);
+
+        if ($stmt->execute()) {
+            return 1; // Success
+        } else {
+            error_log($stmt->error); // Log error for debugging
+            return 0; // Error
 				}
 	}
 

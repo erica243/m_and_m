@@ -108,6 +108,10 @@ if ($action == "delete_user") {
     if ($delete)
         echo $delete;
 }
+if ($action == "save_settings") {
+    $save = $crud->save_settings();
+    echo $save; // Return 1 for success, 0 for failure
+}
 
 // Action handler for fetching notifications
 if ($action == 'get_notifications') {
