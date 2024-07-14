@@ -227,6 +227,16 @@ CREATE TABLE `reports` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+
+CREATE TABLE notifications (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT,
+    message VARCHAR(255),
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
 -- Uncomment and modify the following section to insert data into the `reports` table if needed
 -- INSERT INTO `reports` (`order_date`, `product_name`, `transaction_id`, `mode_of_payment`, `qty`, `total_amount`) VALUES
 -- (NOW(), 'Sample Product', 1, 'Cash', 2, 1200.00);
