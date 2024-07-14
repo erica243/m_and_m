@@ -5,12 +5,10 @@ $first_nameErr = $last_nameErr = $mobileErr = "";
 $first_name = $last_name = $mobile = "";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    
     if (empty($_POST["first_name"])) {
         $first_nameErr = "First name is required";
     } else {
         $first_name = test_input($_POST["first_name"]);
-        // check if the name only contains letters and white space
         if (!preg_match("/^[a-zA-Z-' ]*$/", $first_name)) {
             $first_nameErr = "Only letters and white space allowed";
         }
@@ -20,7 +18,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $last_nameErr = "Last name is required";
     } else {
         $last_name = test_input($_POST["last_name"]);
-        // check if the name only contains letters and white space
         if (!preg_match("/^[a-zA-Z-' ]*$/", $last_name)) {
             $last_nameErr = "Only letters and white space allowed";
         }
@@ -30,7 +27,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $mobileErr = "Mobile number is required";
     } else {
         $mobile = test_input($_POST["mobile"]);
-        // check if phone only contains numbers
         if (!preg_match("/^[0-9]*$/", $mobile)) {
             $mobileErr = "Only numbers allowed";
         }
@@ -50,14 +46,17 @@ function test_input($data) {
         <div class="form-group">
             <label for="" class="control-label">Firstname</label>
             <input type="text" name="first_name" required="" class="form-control">
+            <span class="text-danger"><?php echo $first_nameErr; ?></span>
         </div>
         <div class="form-group">
             <label for="" class="control-label">Lastname</label>
             <input type="text" name="last_name" required="" class="form-control">
+            <span class="text-danger"><?php echo $last_nameErr; ?></span>
         </div>
         <div class="form-group">
             <label for="" class="control-label">Contact</label>
             <input type="tel" id="mobile" name="mobile" maxlength="14" required="" class="form-control" oninput="formatPhoneNumber()">
+            <span class="text-danger"><?php echo $mobileErr; ?></span>
         </div>
         <div class="form-group">
             <label for="" class="control-label">Address</label>
@@ -78,11 +77,8 @@ function test_input($data) {
 <script>
 function formatPhoneNumber() {
     var phoneNumber = document.getElementById("mobile").value;
-    // Remove non-numeric characters
     var cleanedNumber = phoneNumber.replace(/\D/g, '');
-    // Add formatting
     var formattedNumber = cleanedNumber.replace(/(\d{3})(\d{4})(\d{4})/, "($1) $2-$3");
-    // Update input value with formatted number
     document.getElementById("mobile").value = formattedNumber;
 }
 
@@ -97,20 +93,19 @@ $('#signup-frm').submit(function(e){
         method: 'POST',
         data: $(this).serialize(),
         error: err => {
-            console.log(err);
+            console.error("AJAX Error: ", err);
             $('#signup-frm button[type="submit"]').removeAttr('disabled').html('Create');
         },
         success: function(resp) {
-            console.log(resp); // Log the server response
+            console.log(resp);
             if (resp == 1) {
                 location.href = '<?php echo isset($_GET['redirect']) ? $_GET['redirect'] : 'index.php?page=home' ?>';
             } else if (resp == 0) {
                 $('#signup-frm').prepend('<div class="alert alert-danger">Email already exists.</div>');
-                $('#signup-frm button[type="submit"]').removeAttr('disabled').html('Create');
             } else {
                 $('#signup-frm').prepend('<div class="alert alert-danger">An error occurred. Please try again.</div>');
-                $('#signup-frm button[type="submit"]').removeAttr('disabled').html('Create');
             }
+            $('#signup-frm button[type="submit"]').removeAttr('disabled').html('Create');
         }
     });
 });
@@ -120,4 +115,8 @@ $('#signup-frm').submit(function(e){
 #uni_modal .modal-footer {
     display: none;
 }
+.text-danger {
+    color: red;
+}
 </style>
+z
