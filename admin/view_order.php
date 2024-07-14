@@ -110,3 +110,4 @@
         receiptWindow.print();
     }
 </script>
+x
