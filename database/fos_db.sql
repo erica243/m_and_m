@@ -80,7 +80,7 @@ CREATE TABLE `orders` (
   `mobile` text NOT NULL,
   `email` text NOT NULL,
   `status` tinyint(1) NOT NULL DEFAULT 0,
-  `deliver_method` text NOT NULL,
+  `delivery_method` text NOT NULL,
   `created_at` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
