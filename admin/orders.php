@@ -16,13 +16,12 @@
                 <thead>
                     <tr>
                         <th>#</th>
-                        <th>Order Number</th>
+                       
                         <th>Customer Name</th>
                         <th>Address</th>
                         <th>Email</th>
                         <th>Mobile</th>
-                        <th>Order Date</th>
-                        <th>Delivery Method</th>
+                      
                         <th>Status</th>
                         <th></th>
                     </tr>
@@ -36,13 +35,12 @@
                     ?>
                     <tr>
                         <td><?php echo $i++ ?></td>
-                        <td><?php echo $row['order_number'] ?></td>
                         <td><?php echo $row['name'] ?></td>
                         <td><?php echo $row['address'] ?></td>
                         <td><?php echo $row['email'] ?></td>
                         <td><?php echo $row['mobile'] ?></td>
-                        <td><?php echo $row['order_date'] ?></td>
-                        <td><?php echo $row['delivery_method'] ?></td>
+                        <?php echo $row['order_date'] ?></td>
+                
                         <?php if($row['status'] == 1): ?>
                             <td class="text-center"><span class="badge badge-success">Confirmed</span></td>
                         <?php else: ?>
