@@ -43,12 +43,11 @@
           <large style="font-family: 'Dancing Script', cursive !important;"><b><?php echo $_SESSION['setting_name']; ?></b></large>
         </div>
         <div class="col-md-2 float-right" style="display: flex; align-items: center;">
-          <!-- Notification Icon and Badge -->
           <div class="notification-icon">
             <i class="fa fa-bell"></i>
             <span class="notification-badge">0</span>
           </div>
-          <a href="ajax.php?action=logout" class="text-dark"><?php echo $_SESSION['login_name'] ?> <br> <i class="fa fa-sign-out-alt"></i></a>
+          <a href="ajax.php?action=logout" class="text-dark"><?php echo $_SESSION['login_name']; ?> <br> <i class="fa fa-sign-out-alt"></i></a>
         </div>
       </div>
     </div>
@@ -65,6 +64,11 @@
 
           // Update notification badge
           $('.notification-badge').text(newOrdersCount);
+
+          // Optional: Show an alert if there are new orders
+          if (newOrdersCount > 0) {
+            alert("You have " + newOrdersCount + " new orders!");
+          }
         },
         error: function(xhr, status, error) {
           console.error('Error fetching notifications:', error);
@@ -72,7 +76,7 @@
       });
     }
 
-    setInterval(checkForNewOrders, 30000);
+    setInterval(checkForNewOrders, 30000); // Check every 30 seconds
 
     $('.notification-icon').click(function() {
       window.location.href = '../admin/index.php?page=orders';

@@ -114,15 +114,22 @@ if ($action == "save_settings") {
 }
 
 // Action handler for fetching notifications
-if ($action == 'get_notifications') {
-    include 'db_connect.php'; // Include database connection
-    $qry = $conn->query("SELECT * FROM orders WHERE status = 0");
-    $notifications = [];
-    while ($row = $qry->fetch_assoc()) {
-        $notifications[] = $row;
-    }
-    echo json_encode($notifications);
-}
+if ($_GET['action'] === 'get_notifications') {
+    include 'db_connect.php'; // Include your database connection
 
+    // Query to fetch new orders (modify the condition based on your requirements)
+    $query = "SELECT id FROM orders WHERE status = 0"; // Assuming 0 means new
+    $result = $conn->query($query);
+    
+    $newOrders = [];
+    
+    while ($row = $result->fetch_assoc()) {
+        $newOrders[] = $row;
+    }
+
+    echo json_encode($newOrders);
+    $conn->close();
+    exit;
+}
 ob_end_flush(); // Flush the output buffer and turn off output buffering
 ?>
