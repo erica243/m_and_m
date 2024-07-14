@@ -75,7 +75,7 @@ INSERT INTO `category_list` (`id`, `name`) VALUES
 CREATE TABLE `orders` (
   `id` int NOT NULL AUTO_INCREMENT,
   `order_number` text NOT NULL,
-  `order_date` text NOT NULL,
+  `order_date` datetime NOT NULL DEFAULT current_timestamp()
   `name` text NOT NULL,
   `address` text NOT NULL,
   `mobile` text NOT NULL,
