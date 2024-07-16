@@ -73,16 +73,18 @@ INSERT INTO `category_list` (`id`, `name`) VALUES
 --
 
 CREATE TABLE `orders` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `order_number` text NOT NULL,
-  `order_date` datetime NOT NULL DEFAULT current_timestamp()
+  `id` int(30) NOT NULL AUTO_INCREMENT,
+  `order_number` int(11) NOT NULL,
+  `order_date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `name` text NOT NULL,
   `address` text NOT NULL,
   `mobile` text NOT NULL,
   `email` text NOT NULL,
   `status` tinyint(1) NOT NULL DEFAULT 0,
-  `delivery_method` text NOT NULL,
-  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `delivery_method` varchar(100) NOT NULL,
+  `transaction_id` int(11) NOT NULL,
+  `payment` int(11) NOT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
