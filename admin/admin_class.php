@@ -72,6 +72,7 @@ Class Action {
 		header("location:../index.php");
 	}
 
+	
 	function save_user(){
 		extract($_POST);
 		$password = password_hash($password, PASSWORD_DEFAULT);
@@ -108,41 +109,37 @@ Class Action {
 			return 1;
 		}
 	}
+	function save_settings(){
+		extract($_POST);
+		$data = " name = '$name' ";
+		$data .= ", email = '$email' ";
+		$data .= ", contact = '$contact' ";
+		$data .= ", about_content = '".htmlentities(str_replace("'","&#x2019;",$about))."' ";
+		if($_FILES['img']['tmp_name'] != ''){
+						$fname = strtotime(date('y-m-d H:i')).'_'.$_FILES['img']['name'];
+						$move = move_uploaded_file($_FILES['img']['tmp_name'],'../assets/img/'. $fname);
+					$data .= ", cover_img = '$fname' ";
 
-	public function save_settings() {
-        global $conn;
+		}
+		
+		// echo "INSERT INTO system_settings set ".$data;
+		$chk = $this->db->query("SELECT * FROM system_settings");
+		if($chk->num_rows > 0){
+			$save = $this->db->query("UPDATE system_settings set ".$data." where id =".$chk->fetch_array()['id']);
+		}else{
+			$save = $this->db->query("INSERT INTO system_settings set ".$data);
+		}
+		if($save){
+		$query = $this->db->query("SELECT * FROM system_settings limit 1")->fetch_array();
+		foreach ($query as $key => $value) {
+			if(!is_numeric($key))
+				$_SESSION['setting_'.$key] = $value;
+		}
 
-        $name = $_POST['name'];
-        $email = $_POST['email'];
-        $contact = $_POST['contact'];
-        $about_content = $_POST['about'];
-
-        // Handle image upload
-        $imgName = '';
-        if (isset($_FILES['img']) && $_FILES['img']['error'] == UPLOAD_ERR_OK) {
-            $imgName = $_FILES['img']['name'];
-            move_uploaded_file($_FILES['img']['tmp_name'], '../assets/img/' . $imgName);
-        } else {
-            // Handle case where no image is uploaded or keep the existing one
-            $qry = $conn->query("SELECT cover_img FROM system_settings LIMIT 1");
-            $row = $qry->fetch_assoc();
-            $imgName = $row['cover_img'];
-        }
-
-        // Update the settings
-        $sql = "UPDATE system_settings SET name = ?, email = ?, contact = ?, about_content = ?, cover_img = ? WHERE id = 1";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param('sssss', $name, $email, $contact, $about_content, $imgName);
-
-        if ($stmt->execute()) {
-            return 1; // Success
-        } else {
-            error_log($stmt->error); // Log error for debugging
-            return 0; // Error
+			return 1;
 				}
 	}
 
-	
 	function save_category(){
 		extract($_POST);
 		$data = " name = '$name' ";
@@ -164,28 +161,34 @@ Class Action {
 		extract($_POST);
 		$data = " name = '$name' ";
 		$data .= ", price = '$price' ";
+		$data .= ", size = '$size' "; // Add size field
 		$data .= ", category_id = '$category_id' ";
 		$data .= ", description = '$description' ";
-		if(isset($status) && $status  == 'on')
-		$data .= ", status = 1 ";
-		else
-		$data .= ", status = 0 ";
-
-		if($_FILES['img']['tmp_name'] != ''){
-						$fname = strtotime(date('y-m-d H:i')).'_'.$_FILES['img']['name'];
-						$move = move_uploaded_file($_FILES['img']['tmp_name'],'../assets/img/'. $fname);
-					$data .= ", img_path = '$fname' ";
-
+		
+		if (isset($status) && $status == 'on') {
+			$data .= ", status = 1 ";
+		} else {
+			$data .= ", status = 0 ";
 		}
-		if(empty($id)){
-			$save = $this->db->query("INSERT INTO product_list set ".$data);
-		}else{
-			$save = $this->db->query("UPDATE product_list set ".$data." where id=".$id);
+	
+		if ($_FILES['img']['tmp_name'] != '') {
+			$fname = strtotime(date('y-m-d H:i')).'_'.$_FILES['img']['name'];
+			$move = move_uploaded_file($_FILES['img']['tmp_name'], '../assets/img/' . $fname);
+			$data .= ", img_path = '$fname' ";
 		}
-		if($save)
-			return 1;
+	
+		if (empty($id)) {
+			$save = $this->db->query("INSERT INTO product_list SET " . $data);
+		} else {
+			$save = $this->db->query("UPDATE product_list SET " . $data . " WHERE id = " . $id);
+		}
+	
+		if ($save) {
+			return 1; // Success
+		}
+		return 0; // Failure
 	}
-
+	
 	function delete_menu(){
 		extract($_POST);
 		$delete = $this->db->query("DELETE FROM product_list where id = ".$id);
@@ -239,43 +242,65 @@ Class Action {
 		return 1;	
 	}
 
-	function save_order(){
-		extract($_POST);
-		$data = " name = '".$first_name." ".$last_name."' ";
-		$data .= ", address = '$address' ";
-		$data .= ", mobile = '$mobile' ";
-		$data .= ", email = '$email' ";
-		$save = $this->db->query("INSERT INTO orders set ".$data);
-		if($save){
-			$id = $this->db->insert_id;
-			$qry = $this->db->query("SELECT * FROM cart where user_id =".$_SESSION['login_user_id']);
-			while($row= $qry->fetch_assoc()){
+function save_order() {
+    extract($_POST);
 
-					$data = " order_id = '$id' ";
-					$data .= ", product_id = '".$row['product_id']."' ";
-					$data .= ", qty = '".$row['qty']."' ";
-					$save2=$this->db->query("INSERT INTO order_list set ".$data);
-					if($save2){
-						$this->db->query("DELETE FROM cart where id= ".$row['id']);
-					}
-			}
-			return 1;
-		}
-	}
-	function confirm_order(){
-		extract($_POST);
-		$date = date("Y-m-d H:i:s");
-		$save = $this->db->query("UPDATE orders set status = 1, created_at = '$date' where id= ".$id);
+    // Generate order number and order date
+    $order_number = rand(1000, 9999); // Example random order number
+    $order_date = time(); // Current timestamp
+
+    // Determine delivery method from order type
+    $delivery_method = isset($order_type) ? $order_type : 'delivery'; // Default to delivery if not set
+
+    // Prepare data for insertion
+    $data = " order_number = '$order_number' ";
+    $data .= ", order_date = '$order_date' ";
+    $data .= ", delivery_method = '".$this->db->real_escape_string($delivery_method)."' "; // Use selected order type as delivery method
+    $data .= ", name = '".$this->db->real_escape_string($first_name." ".$last_name)."' ";
+    $data .= ", address = '".$this->db->real_escape_string($address)."' ";
+    $data .= ", mobile = '".$this->db->real_escape_string($mobile)."' ";
+    $data .= ", email = '".$this->db->real_escape_string($email)."' ";
+    $data .= ", payment = '".$this->db->real_escape_string($payment_method)."' ";
+    $data .= ", transaction_id = '".$this->db->real_escape_string($transaction_id)."' "; // Transaction ID
+ 
+ // Include pickup date and time if the order type is pickup
+ if ($delivery_method == 'pickup') {
+	$pickup_date = isset($pickup_date) ? $this->db->real_escape_string($pickup_date) : 'N/A';
+	$pickup_time = isset($pickup_time) ? $this->db->real_escape_string($pickup_time) : 'N/A';
+	$data .= ", pickup_date = '$pickup_date', pickup_time = '$pickup_time' ";
+}
+    // Insert order
+    $save = $this->db->query("INSERT INTO orders SET ".$data);
+    
+    if (!$save) {
+        echo "Error: " . $this->db->error; // Output error
+        return 0; // Indicate failure
+    }
+    
+    $id = $this->db->insert_id; // Get the last inserted ID
+    $qry = $this->db->query("SELECT * FROM cart WHERE user_id =".$_SESSION['login_user_id']);
+    
+    while ($row = $qry->fetch_assoc()) {
+        $data = " order_id = '$id' ";
+        $data .= ", product_id = '".$row['product_id']."' ";
+        $data .= ", qty = '".$row['qty']."' ";
+        $save2 = $this->db->query("INSERT INTO order_list SET ".$data);
+        
+        if (!$save2) {
+            echo "Error: " . $this->db->error; // Output error
+            return 0; // Indicate failure
+        }
+        
+        // Remove item from cart
+        $this->db->query("DELETE FROM cart WHERE id= ".$row['id']);
+    }
+    return 1; // Indicate success
+}
+
+function confirm_order(){
+	extract($_POST);
+		$save = $this->db->query("UPDATE orders set status = 1 where id= ".$id);
 		if($save)
 			return 1;
-	}
-	function cancel_order(){
-		extract($_POST);
-		$update = $this->db->query("UPDATE orders SET status = 'Canceled' WHERE id = $id");
-		if($update)
-			return 1;
-		else
-			return 0;
-	}
-
+}	
 }
