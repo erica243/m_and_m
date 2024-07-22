@@ -171,7 +171,7 @@ for ($i = 0; $i < 12; $i++) {
             <div class="col-lg-12">
                 <div class="card mt-3">
                     <div class="card-body">
-                        <?php echo "Welcome back " . $_SESSION['login_name'] . "!"; ?>
+                       <h1> Dashboard</h1>
                     </div>
                 </div>
             </div>
