@@ -179,7 +179,12 @@ for ($i = 0; $i < 12; $i++) {
 
         <div class="row m-3">
             <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12 mb-3">
-                <div class="card rounded-0 shadow card-custom card-custom-primary bg-light-blue">
+            </div>
+            <div class="card p-30" style="background:#9999ff; color: #39ac73 ;">
+                                                <div class="media">
+                                                    <div class="media-left meida media-middle"> 
+                                                        <span><i class="fa fa-bounce fa-money-bill-wave bgreen f-s-40" aria-hidden="true"></i></span>
+                                                    </div>
                     <div class="card-body">
                         <div class="container-fluid">
                             <h5 class="text-muted">Total Sales</h5>
