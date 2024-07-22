@@ -126,6 +126,42 @@ for ($i = 0; $i < 12; $i++) {
             right: 0;
             bottom: -.4em;
         }
+
+        .card-custom {
+            border-left: 4px solid #007bff;
+        }
+
+        .card-custom-primary {
+            border-left-color: #007bff;
+        }
+
+        .card-custom-danger {
+            border-left-color: #dc3545;
+        }
+
+        .card-custom-success {
+            border-left-color: #28a745;
+        }
+
+        .card-custom-warning {
+            border-left-color: #ffc107;
+        }
+
+        .bg-light-blue {
+            background-color: #cce5ff;
+        }
+
+        .bg-light-red {
+            background-color: #f8d7da;
+        }
+
+        .bg-light-green {
+            background-color: #d4edda;
+        }
+
+        .bg-light-yellow {
+            background-color: #fff3cd;
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -143,7 +179,7 @@ for ($i = 0; $i < 12; $i++) {
 
         <div class="row m-3">
             <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12 mb-3">
-                <div class="card rounded-0 shadow">
+                <div class="card rounded-0 shadow card-custom card-custom-primary bg-light-blue">
                     <div class="card-body">
                         <div class="container-fluid">
                             <h5 class="text-muted">Total Sales</h5>
@@ -154,7 +190,7 @@ for ($i = 0; $i < 12; $i++) {
             </div>
 
             <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12 mb-3">
-                <div class="card rounded-0 shadow">
+                <div class="card rounded-0 shadow card-custom card-custom-danger bg-light-red">
                     <div class="card-body">
                         <div class="container-fluid">
                             <h5 class="text-muted">Pending Orders</h5>
@@ -165,7 +201,7 @@ for ($i = 0; $i < 12; $i++) {
             </div>
 
             <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12 mb-3">
-                <div class="card rounded-0 shadow">
+                <div class="card rounded-0 shadow card-custom card-custom-success bg-light-green">
                     <div class="card-body">
                         <div class="container-fluid">
                             <h5 class="text-muted">Confirmed Orders</h5>
@@ -176,7 +212,7 @@ for ($i = 0; $i < 12; $i++) {
             </div>
 
             <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12 mb-3">
-                <div class="card rounded-0 shadow">
+                <div class="card rounded-0 shadow card-custom card-custom-warning bg-light-yellow">
                     <div class="card-body">
                         <div class="container-fluid">
                             <h5 class="text-muted">Monthly Sales</h5>
