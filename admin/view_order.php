@@ -1,9 +1,102 @@
-function print_receipt() {
+
+<div class="container-fluid">
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Qty</th>
+                <th>Order</th>
+                <th>Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php 
+            $total = 0;
+            include 'db_connect.php';
+            $qry = $conn->query("SELECT * FROM order_list o INNER JOIN product_list p ON o.product_id = p.id WHERE order_id = ".$_GET['id']);
+            while($row=$qry->fetch_assoc()):
+                $total += $row['qty'] * $row['price'];
+            ?>
+            <tr>
+                <td><?php echo $row['qty'] ?></td>
+                <td><?php echo $row['name'] ?></td>
+                <td><?php echo number_format($row['qty'] * $row['price'], 2) ?></td>
+            </tr>
+            <?php endwhile; ?>
+        </tbody>
+        <tfoot>
+            <tr>
+                <th colspan="2" class="text-right">TOTAL</th>
+                <th><?php echo number_format($total, 2) ?></th>
+            </tr>
+        </tfoot>
+    </table>
+    <div class="text-center">
+        <button class="btn btn-primary" id="confirm" type="button" onclick="confirm_order()">Confirm</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button class="btn btn-success" type="button" onclick="print_receipt()">Print Receipt</button>
+    </div>
+</div>
+
+<style>
+    #uni_modal .modal-footer {
+        display: none;
+    }
+</style>
+
+<script>
+    function confirm_order() {
+        Swal.fire({
+            title: 'Confirm Order',
+            text: 'Are you sure you want to confirm this order?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, confirm!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                start_load();
+                $.ajax({
+                    url: 'ajax.php?action=confirm_order',
+                    method: 'POST',
+                    data: { id: '<?php echo $_GET['id'] ?>' },
+                    success: function(resp) {
+                        if (resp == 1) {
+                            Swal.fire(
+                                'Confirmed!',
+                                'Order has been successfully confirmed.',
+                                'success'
+                            ).then(function() {
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire(
+                                'Error!',
+                                'Error confirming order: ' + resp,
+                                'error'
+                            );
+                        }
+                        end_load();
+                    },
+                    error: function() {
+                        end_load();
+                        Swal.fire(
+                            'Error!',
+                            'AJAX request failed.',
+                            'error'
+                        );
+                    }
+                });
+            }
+        });
+    }
+    
+    function print_receipt() {
     // Clone the contents of the container
     var container = document.querySelector('.container-fluid').cloneNode(true);
     
     // Remove unwanted elements from the cloned container
-    container.querySelectorAll('.logout, .mm-cake-ordering').forEach(function(element) {
+    container.querySelectorAll(' .mm-cake-ordering').forEach(function(element) {
         element.remove();
     });
 
@@ -49,11 +142,6 @@ function print_receipt() {
     // Table with Order Items
     receiptWindow.document.write('<table>' + printContents + '</table>');
     
-    // Log Out Button
-    receiptWindow.document.write('<div style="text-align: center; margin-top: 20px;">');
-    receiptWindow.document.write('<button onclick="window.location.href=\'logout_url_here\';">Log Out</button>'); // Replace 'logout_url_here' with your actual log out URL
-    receiptWindow.document.write('</div>');
-
     // Footer
     receiptWindow.document.write('<div style="margin-top: 20px;">');
     receiptWindow.document.write('<p>This receipt serves as proof of purchase and does not qualify as a tax invoice.</p>');
