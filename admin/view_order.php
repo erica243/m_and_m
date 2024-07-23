@@ -95,10 +95,7 @@
     // Clone the contents of the container
     var container = document.querySelector('.container-fluid').cloneNode(true);
     
-    // Remove interactive elements like buttons from the cloned container
-    container.querySelectorAll('button').forEach(function(button) {
-        button.remove();
-    });
+   
 
     // Get the updated HTML content of the container
     var printContents = container.innerHTML;
