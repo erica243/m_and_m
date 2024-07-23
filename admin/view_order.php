@@ -91,7 +91,7 @@
         });
     }
     
-   function print_receipt() {
+    function print_receipt() {
     // Clone the contents of the container and remove buttons
     var container = document.querySelector('.container-fluid').cloneNode(true);
     container.querySelectorAll('button').forEach(function(button) {
@@ -99,7 +99,15 @@
     });
 
     // Get the updated HTML content of the container
+    var printContents = container.innerHTML;
     
+    // Data to include in the receipt
+    var customerName = 'John Doe'; // Replace with actual customer name
+    var orderDate = '15/05/2024 22:07:10'; // Replace with actual order date
+    var orderNumber = '5788385448286862261'; // Replace with actual order number
+    var subtotal = 100.00; // Replace with actual subtotal
+    var shipping = 10.00; // Replace with actual shipping cost
+    var total = subtotal + shipping; // Total amount
 
     // Open a new window for printing
     var receiptWindow = window.open('', '', 'height=600,width=800,location=no');
@@ -125,10 +133,21 @@
     
     // Header Details
     receiptWindow.document.write('<h2>Cake Order Receipt</h2>');
+    receiptWindow.document.write('<p><strong>Customer Name:</strong> ' + customerName + '</p>');
+    receiptWindow.document.write('<p><strong>Order Date:</strong> ' + orderDate + '</p>');
+    receiptWindow.document.write('<p><strong>Order Number:</strong> ' + orderNumber + '</p>');
+    
+    // Order Details Table
+    receiptWindow.document.write('<h3>Order Details</h3>');
     receiptWindow.document.write('<div>' + printContents + '</div>');
     
-    // Footer
+    // Footer with Subtotal, Shipping, and Total
     receiptWindow.document.write('<div class="total">');
+    receiptWindow.document.write('<table>');
+    receiptWindow.document.write('<tr><th>Subtotal:</th><td>$' + subtotal.toFixed(2) + '</td></tr>');
+    receiptWindow.document.write('<tr><th>Shipping:</th><td>$' + shipping.toFixed(2) + '</td></tr>');
+    receiptWindow.document.write('<tr><th>Total:</th><td>$' + total.toFixed(2) + '</td></tr>');
+    receiptWindow.document.write('</table>');
     receiptWindow.document.write('<p>This receipt serves as proof of purchase and does not qualify as a tax invoice.</p>');
     receiptWindow.document.write('<p>Thank you for your purchase.</p>');
     receiptWindow.document.write('</div>');
@@ -138,5 +157,6 @@
     receiptWindow.document.close();
     receiptWindow.print();
 }
+
 
 </script>
