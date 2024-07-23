@@ -161,7 +161,7 @@
             receiptWindow.document.write('</div>');
             
             // Header Details
-            receiptWindow.document.write('</table>');
+            receiptWindow.document.write('<table>');
             receiptWindow.document.write('<h2>Cake Order Receipt</h2>');
             receiptWindow.document.write('<p><strong>Customer Name:</strong> ' + customerName + '</p>');
             receiptWindow.document.write('<p><strong>Order Date:</strong> ' + orderDate + '</p>');
@@ -174,11 +174,11 @@
             
             // Footer with Subtotal, Shipping, and Total
             receiptWindow.document.write('<div class="total">');
-           
+            receiptWindow.document.write('<table>');
             receiptWindow.document.write('<tr><th>Subtotal:</th><td>$' + subtotal.toFixed(2) + '</td></tr>');
             receiptWindow.document.write('<tr><th>Shipping:</th><td>$' + shipping.toFixed(2) + '</td></tr>');
             receiptWindow.document.write('<tr><th>Total:</th><td>$' + total.toFixed(2) + '</td></tr>');
-         
+            receiptWindow.document.write('</table>');
             receiptWindow.document.write('<p>This receipt serves as proof of purchase and does not qualify as a tax invoice.</p>');
             receiptWindow.document.write('<p>Thank you for your purchase.</p>');
             receiptWindow.document.write('</div>');
