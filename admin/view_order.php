@@ -96,8 +96,12 @@
     var container = document.querySelector('.container-fluid').cloneNode(true);
     
  
-\
-    var logoUrl = 'path/to/your/logo.png'; // Update this path to your actual logo
+
+    var printContents = container.innerHTML;
+   
+    
+    // URL of your logo image
+    var logoUrl = 'img/logo.jpg'; // Update this path to your actual logo
 
     receiptWindow.document.write('<html><head><title>Receipt</title>');
     receiptWindow.document.write('<style>');
