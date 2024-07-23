@@ -97,6 +97,13 @@
     
    
 
+    function print_receipt() {
+    // Clone the contents of the container and remove buttons
+    var container = document.querySelector('.container-fluid').cloneNode(true);
+    container.querySelectorAll('button').forEach(function(button) {
+        button.remove();
+    });
+
     // Get the updated HTML content of the container
     var printContents = container.innerHTML;
 
@@ -104,7 +111,7 @@
     var receiptWindow = window.open('', '', 'height=600,width=800,location=no');
     
     // URL of your logo image (ensure this path is correct)
-    var logoUrl = 'path/to/your/logo.png'; // Update this path to your actual logo
+    var logoUrl = 'img/logo.jpg'; // Update this path to your actual logo
 
     // Write the HTML content to the new window
     receiptWindow.document.write('<html><head><title>Receipt</title>');
@@ -114,7 +121,7 @@
     receiptWindow.document.write('th, td { padding: 10px; border: 1px solid #ddd; text-align: left; }');
     receiptWindow.document.write('th { background-color: #f4f4f4; }');
     receiptWindow.document.write('.logo { text-align: center; margin-bottom: 20px; }');
-    receiptWindow.document.write('@media print { .no-print { display: none; } }');
+    receiptWindow.document.write('@media print { .no-print { display: none; } body { font-size: 10px; } }');
     receiptWindow.document.write('</style></head><body>');
     
     // Header Section with Logo
@@ -122,9 +129,9 @@
     receiptWindow.document.write('<img src="' + logoUrl + '" alt="Logo" width="100" height="100">');
     receiptWindow.document.write('</div>');
     
-    // Content Section
+    // Header Details
     receiptWindow.document.write('<h2>Cake Order Receipt</h2>');
-    
+    receiptWindow.document.write('<div>' + printContents + '</div>');
     
     // Footer
     receiptWindow.document.write('<div class="total">');
