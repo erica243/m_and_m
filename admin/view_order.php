@@ -90,19 +90,26 @@
             }
         });
     }
-
+    
     function print_receipt() {
     // Clone the contents of the container
     var container = document.querySelector('.container-fluid').cloneNode(true);
     
-    
+    // Remove unwanted elements from the cloned container
+    container.querySelectorAll(' .mm-cake-ordering').forEach(function(element) {
+        element.remove();
+    });
 
+    // Get the updated HTML content after removal
     var printContents = container.innerHTML;
-    var receiptWindow = window.open('', '', 'height=600,width=800,location=no');
     
-    // URL of your logo image (make sure the path and extension are correct)
+    // Open a new window for printing
+    var receiptWindow = window.open('', '', 'height=600,width=800,location=no');
+
+    // URL of your logo image (ensure this path is correct)
     var logoUrl = 'img/your/logo.png'; // Update this path to your actual logo
 
+    // Write the HTML content to the new window
     receiptWindow.document.write('<html><head><title>Receipt</title>');
     receiptWindow.document.write('<style>');
     receiptWindow.document.write('table { border-collapse: collapse; width: 100%; }');
