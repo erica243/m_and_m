@@ -96,15 +96,15 @@
     var container = document.querySelector('.container-fluid').cloneNode(true);
     
     // Remove unwanted elements from the cloned container
-    container.querySelectorAll('').forEach(function(element) {
+    container.querySelectorAll('.logout, .mm-cake-ordering').forEach(function(element) {
         element.remove();
     });
 
     var printContents = container.innerHTML;
     var receiptWindow = window.open('', '', 'height=600,width=800,location=no');
     
-    // URL of your logo image
-    var logoUrl = 'img/logo.jpg'; // Update this path to your actual logo
+    // URL of your logo image (make sure the path and extension are correct)
+    var logoUrl = 'img/your/logo.png'; // Update this path to your actual logo
 
     receiptWindow.document.write('<html><head><title>Receipt</title>');
     receiptWindow.document.write('<style>');
@@ -149,5 +149,3 @@
     receiptWindow.document.close();
     receiptWindow.print();
 }
-
-</script>
