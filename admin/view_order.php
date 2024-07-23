@@ -3,6 +3,10 @@
     <table class="table table-bordered">
         <thead>
             <tr>
+                <th>Costumer Name</th>
+                <th>Address</th>
+                <th>Email</th>
+                <th>Mobile</th>
                 <th>Qty</th>
                 <th>Order</th>
                 <th>Amount</th>
