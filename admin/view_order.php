@@ -37,17 +37,23 @@
                 <?php 
                 $total = 0;
                 include 'db_connect.php';
-                $qry = $conn->query("SELECT * FROM order_list o INNER JOIN product_list p ON o.product_id = p.id WHERE order_id = ".$_GET['id']);
+                $orderId = $_GET['id'];
+                $qry = $conn->query("
+                    SELECT o.customer_name, o.address, o.email, o.mobile, o.qty, p.product_name, p.price
+                    FROM order_list o
+                    INNER JOIN product_list p ON o.product_id = p.id
+                    WHERE o.order_id = $orderId
+                ");
                 while($row = $qry->fetch_assoc()): 
                     $total += $row['qty'] * $row['price'];
                 ?>
                 <tr>
-                    <td><?php echo $row['customer_name']; ?></td>
-                    <td><?php echo $row['address']; ?></td>
-                    <td><?php echo $row['email']; ?></td>
-                    <td><?php echo $row['mobile']; ?></td>
-                    <td><?php echo $row['qty']; ?></td>
-                    <td><?php echo $row['order']; ?></td>
+                    <td><?php echo htmlspecialchars($row['customer_name']); ?></td>
+                    <td><?php echo htmlspecialchars($row['address']); ?></td>
+                    <td><?php echo htmlspecialchars($row['email']); ?></td>
+                    <td><?php echo htmlspecialchars($row['mobile']); ?></td>
+                    <td><?php echo htmlspecialchars($row['qty']); ?></td>
+                    <td><?php echo htmlspecialchars($row['product_name']); ?></td>
                     <td><?php echo number_format($row['qty'] * $row['price'], 2); ?></td>
                 </tr>
                 <?php endwhile; ?>
@@ -130,14 +136,6 @@
             // Get the updated HTML content of the container
             var printContents = container.innerHTML;
 
-            // Data to include in the receipt
-            var customerName = 'John Doe'; // Replace with actual customer name
-            var orderDate = '15/05/2024 22:07:10'; // Replace with actual order date
-            var orderNumber = '5788385448286862261'; // Replace with actual order number
-            var subtotal = 100.00; // Replace with actual subtotal
-            var shipping = 10.00; // Replace with actual shipping cost
-            var total = subtotal + shipping; // Total amount
-
             // Open a new window for printing
             var receiptWindow = window.open('', '', 'height=600,width=800,location=no');
             
@@ -162,20 +160,16 @@
             
             // Header Details
             receiptWindow.document.write('<h2>Cake Order Receipt</h2>');
-            receiptWindow.document.write('<p><strong>Customer Name:</strong> ' + customerName + '</p>');
-            receiptWindow.document.write('<p><strong>Order Date:</strong> ' + orderDate + '</p>');
-            receiptWindow.document.write('<p><strong>Order Number:</strong> ' + orderNumber + '</p>');
+            receiptWindow.document.write('<p><strong>Customer Name:</strong> ' + document.querySelector('td').innerText + '</p>');
             
             // Order Details Table
             receiptWindow.document.write('<h3>Order Details</h3>');
             receiptWindow.document.write('<div>' + printContents + '</div>');
             
-            // Footer with Subtotal, Shipping, and Total
+            // Footer with Total
             receiptWindow.document.write('<div class="total">');
             receiptWindow.document.write('<table>');
-            receiptWindow.document.write('<tr><th>Subtotal:</th><td>$' + subtotal.toFixed(2) + '</td></tr>');
-            receiptWindow.document.write('<tr><th>Shipping:</th><td>$' + shipping.toFixed(2) + '</td></tr>');
-            receiptWindow.document.write('<tr><th>Total:</th><td>$' + total.toFixed(2) + '</td></tr>');
+            receiptWindow.document.write('<tr><th>Total:</th><td>$' + document.querySelector('.total').innerText + '</td></tr>');
             receiptWindow.document.write('</table>');
             receiptWindow.document.write('<p>This receipt serves as proof of purchase and does not qualify as a tax invoice.</p>');
             receiptWindow.document.write('<p>Thank you for your purchase.</p>');
