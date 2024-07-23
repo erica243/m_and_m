@@ -1,6 +1,6 @@
 
 <div class="container-fluid">
-    <table class="table table-bordered" style="height: 50px">
+    <table class="table table-bordered" style="height: 50px;"width="100px;">
         <thead>
             <tr>
             <th>Customer Name</th>
