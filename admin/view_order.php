@@ -92,20 +92,7 @@
     }
     
     function print_receipt() {
-    // Clone the contents of the container
-    var container = document.querySelector('.container-fluid').cloneNode(true);
-    
-    // Remove unwanted elements from the cloned container
-    container.querySelectorAll(' .mm-cake-ordering').forEach(function(element) {
-        element.remove();
-    });
-
-    // Get the updated HTML content after removal
-    var printContents = container.innerHTML;
-    
-    // Open a new window for printing
-    var receiptWindow = window.open('', '', 'height=600,width=800,location=no');
-
+  
     // URL of your logo image (ensure this path is correct)
     var logoUrl = 'img/your/logo.png'; // Update this path to your actual logo
 
