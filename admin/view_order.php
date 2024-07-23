@@ -21,50 +21,50 @@
 </head>
 <body>
     <div class="container-fluid">
-        <table class="table table-bordered">
-            <thead>
-                <tr>
-                    <th>Customer Name</th>
-                    <th>Address</th>
-                    <th>Email</th>
-                    <th>Mobile</th>
-                    <th>Qty</th>
-                    <th>Order</th>
-                    <th>Amount</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php 
-                $total = 0;
-                include 'db_connect.php';
-                $orderId = $_GET['id'];
-                $qry = $conn->query("
-                    SELECT o.customer_name, o.address, o.email, o.mobile, o.qty, p.product_name, p.price
-                    FROM order_list o
-                    INNER JOIN product_list p ON o.product_id = p.id
-                    WHERE o.order_id = $orderId
-                ");
-                while($row = $qry->fetch_assoc()): 
-                    $total += $row['qty'] * $row['price'];
-                ?>
-                <tr>
-                    <td><?php echo htmlspecialchars($row['customer_name']); ?></td>
-                    <td><?php echo htmlspecialchars($row['address']); ?></td>
-                    <td><?php echo htmlspecialchars($row['email']); ?></td>
-                    <td><?php echo htmlspecialchars($row['mobile']); ?></td>
-                    <td><?php echo htmlspecialchars($row['qty']); ?></td>
-                    <td><?php echo htmlspecialchars($row['product_name']); ?></td>
-                    <td><?php echo number_format($row['qty'] * $row['price'], 2); ?></td>
-                </tr>
-                <?php endwhile; ?>
-            </tbody>
-            <tfoot>
-                <tr>
-                    <th colspan="6" class="text-right">TOTAL</th>
-                    <th><?php echo number_format($total, 2); ?></th>
-                </tr>
-            </tfoot>
-        </table>
+    <table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Customer Name</th>
+            <th>Address</th>
+            <th>Email</th>
+            <th>Mobile</th>
+            <th>Qty</th>
+            <th>Order</th>
+            <th>Amount</th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php 
+        $total = 0;
+        include 'db_connect.php';
+        $qry = $conn->query("
+            SELECT o.customer_name, o.address, o.email, o.mobile, o.qty, p.product_name, p.price
+            FROM order_list o
+            INNER JOIN product_list p ON o.product_id = p.id
+            WHERE o.order_id = ".$_GET['id']
+        );
+        while($row = $qry->fetch_assoc()): 
+            $total += $row['qty'] * $row['price'];
+        ?>
+        <tr>
+            <td><?php echo $row['customer_name']; ?></td>
+            <td><?php echo $row['address']; ?></td>
+            <td><?php echo $row['email']; ?></td>
+            <td><?php echo $row['mobile']; ?></td>
+            <td><?php echo $row['qty']; ?></td>
+            <td><?php echo $row['product_name']; ?></td>
+            <td><?php echo number_format($row['qty'] * $row['price'], 2); ?></td>
+        </tr>
+        <?php endwhile; ?>
+    </tbody>
+    <tfoot>
+        <tr>
+            <th colspan="6" class="text-right">TOTAL</th>
+            <th><?php echo number_format($total, 2); ?></th>
+        </tr>
+    </tfoot>
+</table>
+
         <div class="text-center">
             <button class="btn btn-primary" id="confirm" type="button" onclick="confirm_order()">Confirm</button>
             <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
