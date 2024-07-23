@@ -37,29 +37,12 @@ echo json_encode([
 ]);
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Order Details</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <style>
-        #uni_modal .modal-footer {
-            display: none;
-        }
-        .no-print {
-            display: none;
-        }
-    </style>
-</head>
-<body>
 <div class="container-fluid">
     <table class="table table-bordered">
         <thead>
             <tr>
                 <th>Qty</th>
-                <th>Product</th>
+                <th>Order</th>
                 <th>Amount</th>
             </tr>
         </thead>
@@ -68,7 +51,7 @@ echo json_encode([
             $total = 0;
             include 'db_connect.php';
             $qry = $conn->query("SELECT * FROM order_list o INNER JOIN product_list p ON o.product_id = p.id WHERE order_id = ".$_GET['id']);
-            while($row = $qry->fetch_assoc()):
+            while($row=$qry->fetch_assoc()):
                 $total += $row['qty'] * $row['price'];
             ?>
             <tr>
@@ -92,8 +75,11 @@ echo json_encode([
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<style>
+    #uni_modal .modal-footer {
+        display: none;
+    }
+</style>
 
 <script>
     function confirm_order() {
@@ -142,83 +128,73 @@ echo json_encode([
             }
         });
     }
-
+    
     function print_receipt() {
-        // Fetch order details from the server
-        fetch('fetch_order_details.php?id=' + <?php echo $_GET['id']; ?>)
-            .then(response => response.json())
-            .then(data => {
-                // Clone the contents of the container and remove buttons
-                var container = document.querySelector('.container-fluid').cloneNode(true);
-                container.querySelectorAll('button').forEach(function(button) {
-                    button.remove();
-                });
+    // Clone the contents of the container and remove buttons
+    var container = document.querySelector('.container-fluid').cloneNode(true);
+    container.querySelectorAll('button').forEach(function(button) {
+        button.remove();
+    });
 
-                // Get the updated HTML content of the container
-                var printContents = container.innerHTML;
+    // Get the updated HTML content of the container
+  
+    
+    // Data to include in the receipt
+    var customerName = 'John Doe'; // Replace with actual customer name
+    var orderDate = '15/05/2024 22:07:10'; // Replace with actual order date
+    var orderNumber = '5788385448286862261'; // Replace with actual order number
+    var subtotal = 100.00; // Replace with actual subtotal
+    var shipping = 10.00; // Replace with actual shipping cost
+    var total = subtotal + shipping; // Total amount
 
-                // Open a new window for printing
-                var receiptWindow = window.open('', '', 'height=600,width=800,location=no');
+    // Open a new window for printing
+    var receiptWindow = window.open('', '', 'height=600,width=800,location=no');
+    
+    // URL of your logo image (ensure this path is correct)
+    var logoUrl = 'img/logo.jpg'; // Update this path to your actual logo
 
-                // URL of your logo image (ensure this path is correct)
-                var logoUrl = 'img/logo.jpg'; // Update this path to your actual logo
+    // Write the HTML content to the new window
+    receiptWindow.document.write('<html><head><title>Receipt</title>');
+    receiptWindow.document.write('<style>');
+    receiptWindow.document.write('body { font-family: Arial, sans-serif; margin: 20px; }');
+    receiptWindow.document.write('table { width: 100%; border-collapse: collapse; margin-top: 20px; }');
+    receiptWindow.document.write('th, td { padding: 10px; border: 1px solid #ddd; text-align: left; }');
+    receiptWindow.document.write('th { background-color: #f4f4f4; }');
+    receiptWindow.document.write('.logo { text-align: center; margin-bottom: 20px; }');
+    receiptWindow.document.write('@media print { .no-print { display: none; } body { font-size: 10px; } }');
+    receiptWindow.document.write('</style></head><body>');
+    
+    // Header Section with Logo
+    receiptWindow.document.write('<div class="logo">');
+    receiptWindow.document.write('<img src="' + logoUrl + '" alt="Logo" width="100" height="100">');
+    receiptWindow.document.write('</div>');
+    
+    // Header Details
+    receiptWindow.document.write('<h2>Cake Order Receipt</h2>');
+    receiptWindow.document.write('<p><strong>Customer Name:</strong> ' + customerName + '</p>');
+    receiptWindow.document.write('<p><strong>Order Date:</strong> ' + orderDate + '</p>');
+    receiptWindow.document.write('<p><strong>Order Number:</strong> ' + orderNumber + '</p>');
+    
+    // Order Details Table
+    receiptWindow.document.write('<h3>Order Details</h3>');
+    receiptWindow.document.write('<div>' + printContents + '</div>');
+    
+    // Footer with Subtotal, Shipping, and Total
+    receiptWindow.document.write('<div class="total">');
+    receiptWindow.document.write('<table>');
+    receiptWindow.document.write('<tr><th>Subtotal:</th><td>$' + subtotal.toFixed(2) + '</td></tr>');
+    receiptWindow.document.write('<tr><th>Shipping:</th><td>$' + shipping.toFixed(2) + '</td></tr>');
+    receiptWindow.document.write('<tr><th>Total:</th><td>$' + total.toFixed(2) + '</td></tr>');
+    receiptWindow.document.write('</table>');
+    receiptWindow.document.write('<p>This receipt serves as proof of purchase and does not qualify as a tax invoice.</p>');
+    receiptWindow.document.write('<p>Thank you for your purchase.</p>');
+    receiptWindow.document.write('</div>');
+    
+    receiptWindow.document.write('</body></html>');
+    
+    receiptWindow.document.close();
+    receiptWindow.print();
+}
 
-                // Write the HTML content to the new window
-                receiptWindow.document.write('<html><head><title>Receipt</title>');
-                receiptWindow.document.write('<style>');
-                receiptWindow.document.write('body { font-family: Arial, sans-serif; margin: 20px; }');
-                receiptWindow.document.write('table { width: 100%; border-collapse: collapse; margin-top: 20px; }');
-                receiptWindow.document.write('th, td { padding: 10px; border: 1px solid #ddd; text-align: left; }');
-                receiptWindow.document.write('th { background-color: #f4f4f4; }');
-                receiptWindow.document.write('.logo { text-align: center; margin-bottom: 20px; }');
-                receiptWindow.document.write('@media print { .no-print { display: none; } body { font-size: 10px; } }');
-                receiptWindow.document.write('</style></head><body>');
-                
-                // Header Section with Logo
-                receiptWindow.document.write('<div class="logo">');
-                receiptWindow.document.write('<img src="' + logoUrl + '" alt="Logo" width="100" height="100">');
-                receiptWindow.document.write('</div>');
-                
-                // Header Details
-                receiptWindow.document.write('<h2>Cake Order Receipt</h2>');
-                receiptWindow.document.write('<p><strong>Order Number:</strong> ' + data.order_number + '</p>');
-                receiptWindow.document.write('<p><strong>Customer Name:</strong> ' + data.customer_name + '</p>');
-                receiptWindow.document.write('<p><strong>Address:</strong> ' + data.address + '</p>');
-                receiptWindow.document.write('<p><strong>Payment Method:</strong> ' + data.payment_method + '</p>');
-                
-                // Order Details Table
-                receiptWindow.document.write('<h3>Order Details</h3>');
-                receiptWindow.document.write('<table>');
-                receiptWindow.document.write('<thead><tr><th>Product</th><th>Qty</th><th>Price</th><th>Amount</th></tr></thead>');
-                receiptWindow.document.write('<tbody>');
-                data.order_details.forEach(detail => {
-                    receiptWindow.document.write('<tr>');
-                    receiptWindow.document.write('<td>' + detail.product_name + '</td>');
-                    receiptWindow.document.write('<td>' + detail.qty + '</td>');
-                    receiptWindow.document.write('<td>$' + detail.price.toFixed(2) + '</td>');
-                    receiptWindow.document.write('<td>$' + detail.amount.toFixed(2) + '</td>');
-                    receiptWindow.document.write('</tr>');
-                });
-                receiptWindow.document.write('</tbody>');
-                receiptWindow.document.write('</table>');
-                
-                // Footer with Total Amount
-                receiptWindow.document.write('<div class="total">');
-                receiptWindow.document.write('<table>');
-                receiptWindow.document.write('<tr><th>Total Amount:</th><td>$' + data.total_amount.toFixed(2) + '</td></tr>');
-                receiptWindow.document.write('</table>');
-                receiptWindow.document.write('<p>This receipt serves as proof of purchase and does not qualify as a tax invoice.</p>');
-                receiptWindow.document.write('<p>Thank you for your purchase.</p>');
-                receiptWindow.document.write('</div>');
-                
-                receiptWindow.document.write('</body></html>');
-                
-                receiptWindow.document.close();
-                receiptWindow.print();
-            })
-            .catch(error => console.error('Error fetching order details:', error));
-    }
+
 </script>
-
-</body>
-</html>
