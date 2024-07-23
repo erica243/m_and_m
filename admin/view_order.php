@@ -1,62 +1,61 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cake Ordering Receipt</title>
+    <title>Cake Order Receipt</title>
     <style>
-        /* Print-specific CSS */
-        @media print {
-            body {
-                font-family: Arial, sans-serif;
-                margin: 0;
-                padding: 0;
-            }
-            .print-container {
-                width: 100%;
-                padding: 20px;
-                border: 1px solid #ddd;
-            }
-            .logo {
-                text-align: center;
-                margin-bottom: 20px;
-            }
-            .order-details {
-                margin-bottom: 20px;
-            }
-            .footer {
-                text-align: center;
-                margin-top: 20px;
-            }
-            /* Hide non-print elements */
-            .no-print {
-                display: none;
-            }
-        }
+        body { font-family: Arial, sans-serif; }
+        .receipt { max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; }
+        h2 { text-align: center; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 10px; border: 1px solid #ddd; text-align: left; }
+        .total { text-align: right; font-size: 1.2em; margin-top: 20px; }
+        .logo { text-align: center; margin-bottom: 20px; }
     </style>
 </head>
 <body>
-    <div class="no-print">
-        <button onclick="window.print()">Print Receipt</button>
-    </div>
-    
-    <div class="print-container">
+    <div class="receipt">
         <div class="logo">
-            <img src="logo.png" alt="Company Logo" width="200">
+            <img src="path/to/your/logo.png" alt="Logo" width="100" height="100">
         </div>
-        
-        <div class="order-details">
-            <h1>Order Receipt</h1>
-            <p><strong>Order Number:</strong> #12345</p>
-            <p><strong>Date:</strong> July 23, 2024</p>
-            <p><strong>Customer Name:</strong> John Doe</p>
-            <p><strong>Product:</strong> Chocolate Cake</p>
-            <p><strong>Quantity:</strong> 1</p>
-            <p><strong>Total Price:</strong> $25.00</p>
-        </div>
-        
-        <div class="footer">
-            <p>Thank you for your order!</p>
+        <h2>Cake Order Receipt</h2>
+        <?php
+            // Example order details
+            $customerName = "John Doe";
+            $cakeType = "Chocolate Cake";
+            $size = "Large";
+            $quantity = 1;
+            $pricePerCake = 25.00;
+            $totalPrice = $quantity * $pricePerCake;
+            $orderDate = date("Y-m-d H:i:s");
+        ?>
+        <table>
+            <tr>
+                <th>Customer Name</th>
+                <td><?php echo $customerName; ?></td>
+            </tr>
+            <tr>
+                <th>Cake Type</th>
+                <td><?php echo $cakeType; ?></td>
+            </tr>
+            <tr>
+                <th>Size</th>
+                <td><?php echo $size; ?></td>
+            </tr>
+            <tr>
+                <th>Quantity</th>
+                <td><?php echo $quantity; ?></td>
+            </tr>
+            <tr>
+                <th>Price per Cake</th>
+                <td><?php echo "$" . number_format($pricePerCake, 2); ?></td>
+            </tr>
+            <tr>
+                <th>Order Date</th>
+                <td><?php echo $orderDate; ?></td>
+            </tr>
+        </table>
+        <div class="total">
+            <strong>Total Price: <?php echo "$" . number_format($totalPrice, 2); ?></strong>
         </div>
     </div>
 </body>
