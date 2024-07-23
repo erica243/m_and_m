@@ -95,10 +95,7 @@
     // Clone the contents of the container
     var container = document.querySelector('.container-fluid').cloneNode(true);
     
-    // Remove unwanted elements from the cloned container
-    container.querySelectorAll('.logout, .mm-cake-ordering').forEach(function(element) {
-        element.remove();
-    });
+ 
 
     var printContents = container.innerHTML;
     var receiptWindow = window.open('', '', 'height=600,width=800,location=no');
