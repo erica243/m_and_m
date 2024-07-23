@@ -1,21 +1,19 @@
 
 <div class="container-fluid">
-<table class="table table-bordered">
-    <thead>
-        <tr>
-            <th style="width: 15%;">Customer Name</th>
-            <th style="width: 10%;">Order Number</th>
-            <th style="width: 15%;">Order Date</th>
-            <th style="width: 20%;">Address</th>
-            <th style="width: 10%;">Delivery Method</th>
-            <th style="width: 10%;">Payment Method</th>
-            <th style="width: 5%;">Qty</th>
-            <th style="width: 10%;">Order</th>
-            <th style="width: 5%;">Amount</th>
-        </tr>
-    </thead>
-    <tbody>
-        <!-- Add your rows here --
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+            <th>Customer Name</th>
+            <th>Order Number</th> 
+            <th>Order Date</th> 
+            <th>Address</th> 
+            <th>Delivery Method</th> 
+            <th>Payment Method </th> 
+                <th>Qty</th>
+                <th>Order</th>
+                <th>Amount</th>
+            </tr>
+        </thead>
         <tbody>
             <?php 
             $total = 0;
