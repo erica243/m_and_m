@@ -8,7 +8,7 @@
                 <th>Email</th>
                 <th>Mobile</th>
                 <th>Qty</th>
-                <th>Order</th>
+                <th>Email</th>
                 <th>Amount</th>
             </tr>
         </thead>
