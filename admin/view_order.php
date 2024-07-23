@@ -99,7 +99,7 @@
     });
 
     // Get the updated HTML content of the container
-    var printContents = container.innerHTML;
+    
 
     // Open a new window for printing
     var receiptWindow = window.open('', '', 'height=600,width=800,location=no');
