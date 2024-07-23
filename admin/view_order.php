@@ -1,30 +1,67 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .table th:nth-child(1) { width: 15%; }
+        .table th:nth-child(2) { width: 10%; }
+        .table th:nth-child(3) { width: 15%; }
+        .table th:nth-child(4) { width: 20%; }
+        .table th:nth-child(5) { width: 10%; }
+        .table th:nth-child(6) { width: 10%; }
+        .table th:nth-child(7) { width: 5%; }
+        .table th:nth-child(8) { width: 10%; }
+        .table th:nth-child(9) { width: 5%; }
+        .modal-dialog {
+            max-width: 90%; /* Adjust this value as needed */
+            margin: 30px auto; /* Centers the modal horizontally */
+        }
+        .modal-content {
+            width: 100%; /* Ensures the content takes full width of the dialog */
+        }
+     </style>
+</head>
+<body>
 <div class="container-fluid">
-    <table class="table table-bordered">
-        <thead>
-            <tr>
-            <th>Customer Name</th>
-            <th>Order Number</th> 
-            <th>Order Date</th> 
-            <th>Address</th> 
-            <th>Delivery Method</th> 
-            <th>Payment Method </th> 
-                <th>Qty</th>
-                <th>Order</th>
-                <th>Amount</th>
-            </tr>
-        </thead>
-        <tbody>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Customer Name</th>
+                    <th>Order Number</th>
+                    <th>Order Date</th>
+                    <th>Address</th>
+                    <th>Delivery Method</th>
+                    <th>Payment Method</th>
+                    <th>Qty</th>
+                    <th>Product Name</th>
+                    <th>Amount</th>
+                </tr>
+            </thead>
+            <tbody>
             <?php 
             $total = 0;
             include 'db_connect.php';
-            $qry = $conn->query("SELECT * FROM order_list o INNER JOIN product_list p ON o.product_id = p.id WHERE order_id = ".$_GET['id']);
+            $qry = $conn->query("SELECT o.order_number, o.name, o.order_date, o.address, o.delivery_method, o.payment, 
+                                    ol.qty, p.name as product_name, p.price 
+                                 FROM orders o 
+                                 INNER JOIN order_list ol ON o.id = ol.order_id 
+                                 INNER JOIN product_list p ON ol.product_id = p.id 
+                                 WHERE o.id = ".$_GET['id']);
             while($row=$qry->fetch_assoc()):
                 $total += $row['qty'] * $row['price'];
             ?>
             <tr>
-                <td><?php echo $row['qty'] ?></td>
                 <td><?php echo $row['name'] ?></td>
+                <td><?php echo $row['order_number'] ?></td>
+                <td><?php echo date('Y-m-d', strtotime($row['order_date'])); ?></td>
+                <td><?php echo $row['address'] ?></td>
+                <td><?php echo $row['delivery_method'] ?></td>
+                <td><?php echo $row['payment'] ?></td>
+                <td><?php echo $row['qty'] ?></td>
+                <td><?php echo $row['product_name'] ?></td>
                 <td><?php echo number_format($row['qty'] * $row['price'], 2) ?></td>
             </tr>
             <?php endwhile; ?>
