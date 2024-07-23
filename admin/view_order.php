@@ -1,13 +1,14 @@
+
 <div class="container-fluid">
     <table class="table table-bordered">
         <thead>
             <tr>
-                <th>Customer Name</th>
-                <th>Transaction ID</th> <!-- Changed header from Order Number to Transaction ID -->
-                <th>Order Date</th> 
-                <th>Address</th> 
-                <th>Delivery Method</th> 
-                <th>Payment Method</th> 
+            <th>Customer Name</th>
+            <th>Order Number</th> 
+            <th>Order Date</th> 
+            <th>Address</th> 
+            <th>Delivery Method</th> 
+            <th>Payment Method </th> 
                 <th>Qty</th>
                 <th>Order</th>
                 <th>Amount</th>
@@ -17,33 +18,21 @@
             <?php 
             $total = 0;
             include 'db_connect.php';
-            // Ensure you are joining the right tables and using correct columns
-            $qry = $conn->query("SELECT o.name as customer_name, o.transaction_id, o.order_date, o.address, o.delivery_method, o.payment, 
-                                        ol.qty, p.name as product_name, p.price 
-                                 FROM orders o 
-                                 INNER JOIN order_list ol ON o.id = ol.order_id 
-                                 INNER JOIN product_list p ON ol.product_id = p.id 
-                                 WHERE o.id = " . intval($_GET['id']));
-            while ($row = $qry->fetch_assoc()):
+            $qry = $conn->query("SELECT * FROM order_list o INNER JOIN product_list p ON o.product_id = p.id WHERE order_id = ".$_GET['id']);
+            while($row=$qry->fetch_assoc()):
                 $total += $row['qty'] * $row['price'];
             ?>
             <tr>
-                <td><?php echo htmlspecialchars($row['customer_name']); ?></td>
-                <td><?php echo htmlspecialchars($row['transaction_id']); ?></td> <!-- Changed column reference -->
-                <td><?php echo htmlspecialchars(date('Y-m-d', strtotime($row['order_date']))); ?></td>
-                <td><?php echo htmlspecialchars($row['address']); ?></td>
-                <td><?php echo htmlspecialchars($row['delivery_method']); ?></td>
-                <td><?php echo htmlspecialchars($row['payment']); ?></td>
-                <td><?php echo htmlspecialchars($row['qty']); ?></td>
-                <td><?php echo htmlspecialchars($row['product_name']); ?></td>
-                <td><?php echo number_format($row['qty'] * $row['price'], 2); ?></td>
+                <td><?php echo $row['qty'] ?></td>
+                <td><?php echo $row['name'] ?></td>
+                <td><?php echo number_format($row['qty'] * $row['price'], 2) ?></td>
             </tr>
             <?php endwhile; ?>
         </tbody>
         <tfoot>
             <tr>
-                <th colspan="8" class="text-right">TOTAL</th>
-                <th><?php echo number_format($total, 2); ?></th>
+                <th colspan="2" class="text-right">TOTAL</th>
+                <th><?php echo number_format($total, 2) ?></th>
             </tr>
         </tfoot>
     </table>
@@ -76,7 +65,7 @@
                 $.ajax({
                     url: 'ajax.php?action=confirm_order',
                     method: 'POST',
-                    data: { id: '<?php echo $_GET['id']; ?>' },
+                    data: { id: '<?php echo $_GET['id'] ?>' },
                     success: function(resp) {
                         if (resp == 1) {
                             Swal.fire(
@@ -108,48 +97,52 @@
         });
     }
     
-    function print_receipt() {
-        // Clone the contents of the container and remove buttons
-        var container = document.querySelector('.container-fluid').cloneNode(true);
-        container.querySelectorAll('button').forEach(function(button) {
-            button.remove();
-        });
+   function print_receipt() {
+    // Clone the contents of the container and remove buttons
+    var container = document.querySelector('.container-fluid').cloneNode(true);
+    container.querySelectorAll('button').forEach(function(button) {
+        button.remove();
+    });
 
-        // Open a new window for printing
-        var receiptWindow = window.open('', '', 'height=600,width=800,location=no');
-        
-        // URL of your logo image (ensure this path is correct)
-        var logoUrl = 'img/logo.jpg'; // Update this path to your actual logo
+    // Get the updated HTML content of the container
+    
 
-        // Write the HTML content to the new window
-        receiptWindow.document.write('<html><head><title>Receipt</title>');
-        receiptWindow.document.write('<style>');
-        receiptWindow.document.write('body { font-family: Arial, sans-serif; margin: 20px; }');
-        receiptWindow.document.write('table { width: 100%; border-collapse: collapse; margin-top: 20px; }');
-        receiptWindow.document.write('th, td { padding: 10px; border: 1px solid #ddd; text-align: left; }');
-        receiptWindow.document.write('th { background-color: #f4f4f4; }');
-        receiptWindow.document.write('.logo { text-align: center; margin-bottom: 20px; }');
-        receiptWindow.document.write('@media print { .no-print { display: none; } body { font-size: 10px; } }');
-        receiptWindow.document.write('</style></head><body>');
-        
-        // Header Section with Logo
-        receiptWindow.document.write('<div class="logo">');
-        receiptWindow.document.write('<img src="' + logoUrl + '" alt="Logo" width="100" height="100">');
-        receiptWindow.document.write('</div>');
-        
-        // Header Details
-        receiptWindow.document.write('<h2>Cake Order Receipt</h2>');
-        receiptWindow.document.write('<div>' + container.innerHTML + '</div>');
-        
-        // Footer
-        receiptWindow.document.write('<div class="total">');
-        receiptWindow.document.write('<p>This receipt serves as proof of purchase and does not qualify as a tax invoice.</p>');
-        receiptWindow.document.write('<p>Thank you for your purchase.</p>');
-        receiptWindow.document.write('</div>');
-        
-        receiptWindow.document.write('</body></html>');
-        
-        receiptWindow.document.close();
-        receiptWindow.print();
-    }
+    // Open a new window for printing
+    var receiptWindow = window.open('', '', 'height=600,width=800,location=no');
+    
+    // URL of your logo image (ensure this path is correct)
+    var logoUrl = 'img/logo.jpg'; // Update this path to your actual logo
+
+    // Write the HTML content to the new window
+    receiptWindow.document.write('<html><head><title>Receipt</title>');
+    receiptWindow.document.write('<style>');
+    receiptWindow.document.write('body { font-family: Arial, sans-serif; margin: 20px; }');
+    receiptWindow.document.write('table { width: 100%; border-collapse: collapse; margin-top: 20px; }');
+    receiptWindow.document.write('th, td { padding: 10px; border: 1px solid #ddd; text-align: left; }');
+    receiptWindow.document.write('th { background-color: #f4f4f4; }');
+    receiptWindow.document.write('.logo { text-align: center; margin-bottom: 20px; }');
+    receiptWindow.document.write('@media print { .no-print { display: none; } body { font-size: 10px; } }');
+    receiptWindow.document.write('</style></head><body>');
+    
+    // Header Section with Logo
+    receiptWindow.document.write('<div class="logo">');
+    receiptWindow.document.write('<img src="' + logoUrl + '" alt="Logo" width="100" height="100">');
+    receiptWindow.document.write('</div>');
+    
+    // Header Details
+    receiptWindow.document.write('<h2>Cake Order Receipt</h2>');
+    receiptWindow.document.write('<div>' + printContents + '</div>');
+    
+    // Footer
+    receiptWindow.document.write('<div class="total">');
+    receiptWindow.document.write('<p>This receipt serves as proof of purchase and does not qualify as a tax invoice.</p>');
+    receiptWindow.document.write('<p>Thank you for your purchase.</p>');
+    receiptWindow.document.write('</div>');
+    
+    receiptWindow.document.write('</body></html>');
+    
+    receiptWindow.document.close();
+    receiptWindow.print();
+}
+
 </script>
