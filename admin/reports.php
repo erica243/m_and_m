@@ -48,7 +48,7 @@ if ($result->num_rows > 0): ?>
 
 $conn->close();
 ?>
-
+</div>
 <script>
 function printReport() {
     var printContents = document.getElementById('order-report-table').outerHTML;
