@@ -1,26 +1,3 @@
-<?php 
-$total = 0;
-include 'db_connect.php';
-
-// Adjust the query to match your actual schema
-$orderId = $_GET['id'];
-$qry = $conn->query("
-    SELECT 
-        u.name AS customer_name,  -- Replace with the actual column name for customer name
-        u.address,                -- Replace with actual column names
-        u.email, 
-        u.mobile, 
-        o.qty, 
-        p.product_name, 
-        p.price
-    FROM 
-        order_list o
-        INNER JOIN product_list p ON o.product_id = p.id
-        INNER JOIN user_info u ON o.user_id = u.user_id  -- Ensure user_id is the correct linking column
-    WHERE 
-        o.order_id = $orderId
-");
-?>
 <!DOCTYPE html>
 <html>
 <head>
@@ -58,6 +35,15 @@ $qry = $conn->query("
             </thead>
             <tbody>
                 <?php 
+                $total = 0;
+                include 'db_connect.php';
+                $orderId = $_GET['id'];
+                $qry = $conn->query("
+                    SELECT o.customer_name, o.address, o.email, o.mobile, o.qty, p.product_name, p.price
+                    FROM order_list o
+                    INNER JOIN product_list p ON o.product_id = p.id
+                    WHERE o.order_id = $orderId
+                ");
                 while($row = $qry->fetch_assoc()): 
                     $total += $row['qty'] * $row['price'];
                 ?>
