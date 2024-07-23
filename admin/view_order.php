@@ -91,13 +91,7 @@
         });
     }
     
-    function print_receipt() {
-    // Clone the contents of the container
-    var container = document.querySelector('.container-fluid').cloneNode(true);
-    
-   
-
-    function print_receipt() {
+   function print_receipt() {
     // Clone the contents of the container and remove buttons
     var container = document.querySelector('.container-fluid').cloneNode(true);
     container.querySelectorAll('button').forEach(function(button) {
