@@ -124,7 +124,7 @@
     
     // Content Section
     receiptWindow.document.write('<h2>Cake Order Receipt</h2>');
-    receiptWindow.document.write('<div>' + printContents + '</div>');
+    
     
     // Footer
     receiptWindow.document.write('<div class="total">');
