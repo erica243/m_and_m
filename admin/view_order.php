@@ -1,76 +1,37 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        .table th:nth-child(1) { width: 15%; }
-        .table th:nth-child(2) { width: 10%; }
-        .table th:nth-child(3) { width: 15%; }
-        .table th:nth-child(4) { width: 20%; }
-        .table th:nth-child(5) { width: 10%; }
-        .table th:nth-child(6) { width: 10%; }
-        .table th:nth-child(7) { width: 5%; }
-        .table th:nth-child(8) { width: 10%; }
-        .table th:nth-child(9) { width: 5%; }
-        .modal-dialog {
-            max-width: 90%; /* Adjust this value as needed */
-            margin: 30px auto; /* Centers the modal horizontally */
-        }
-        .modal-content {
-            width: 100%; /* Ensures the content takes full width of the dialog */
-        }
-    </style>
-</head>
-<body>
+
 <div class="container-fluid">
     <table class="table table-bordered">
         <thead>
             <tr>
-                <th>Customer Name</th>
-                <th>Order Number</th>
-                <th>Order Date</th>
-                <th>Address</th>
-                <th>Delivery Method</th>
-                <th>Payment Method</th>
+            <th>Customer Name</th>
+            <th>Order Number</th> 
+            <th>Order Date</th> 
+            <th>Address</th> 
+            <th>Delivery Method</th> 
+            <th>Payment Method </th> 
                 <th>Qty</th>
-                <th>Product Name</th>
+                <th>Order</th>
                 <th>Amount</th>
             </tr>
         </thead>
         <tbody>
-        <?php 
-        $total = 0;
-        include 'db_connect.php';
-
-        // Ensure these columns match your database schema
-        $qry = $conn->query("SELECT o.customer_name, o.order_number, o.order_date, o.address, o.delivery_method, o.payment, 
-                                ol.qty, p.product_name, p.price 
-                             FROM orders o 
-                             INNER JOIN order_list ol ON o.id = ol.order_id 
-                             INNER JOIN product_list p ON ol.product_id = p.id 
-                             WHERE o.id = ".$_GET['id']);
-
-        while($row=$qry->fetch_assoc()):
-            $total += $row['qty'] * $row['price'];
-        ?>
-        <tr>
-            <td><?php echo $row['customer_name'] ?></td>
-            <td><?php echo $row['order_number'] ?></td>
-            <td><?php echo date('Y-m-d', strtotime($row['order_date'])); ?></td>
-            <td><?php echo $row['address'] ?></td>
-            <td><?php echo $row['delivery_method'] ?></td>
-            <td><?php echo $row['payment'] ?></td>
-            <td><?php echo $row['qty'] ?></td>
-            <td><?php echo $row['product_name'] ?></td>
-            <td><?php echo number_format($row['qty'] * $row['price'], 2) ?></td>
-        </tr>
-        <?php endwhile; ?>
+            <?php 
+            $total = 0;
+            include 'db_connect.php';
+            $qry = $conn->query("SELECT * FROM order_list o INNER JOIN product_list p ON o.product_id = p.id WHERE order_id = ".$_GET['id']);
+            while($row=$qry->fetch_assoc()):
+                $total += $row['qty'] * $row['price'];
+            ?>
+            <tr>
+                <td><?php echo $row['qty'] ?></td>
+                <td><?php echo $row['name'] ?></td>
+                <td><?php echo number_format($row['qty'] * $row['price'], 2) ?></td>
+            </tr>
+            <?php endwhile; ?>
         </tbody>
         <tfoot>
             <tr>
-                <th colspan="8" class="text-right">TOTAL</th>
+                <th colspan="2" class="text-right">TOTAL</th>
                 <th><?php echo number_format($total, 2) ?></th>
             </tr>
         </tfoot>
@@ -81,13 +42,13 @@
         <button class="btn btn-success" type="button" onclick="print_receipt()">Print Receipt</button>
     </div>
 </div>
+
 <style>
     #uni_modal .modal-footer {
         display: none;
     }
 </style>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+
 <script>
     function confirm_order() {
         Swal.fire({
@@ -122,99 +83,66 @@
                             );
                         }
                         end_load();
+                    },
+                    error: function() {
+                        end_load();
+                        Swal.fire(
+                            'Error!',
+                            'AJAX request failed.',
+                            'error'
+                        );
                     }
                 });
             }
         });
     }
+    
+   function print_receipt() {
+    // Clone the contents of the container and remove buttons
+    var container = document.querySelector('.container-fluid').cloneNode(true);
+    container.querySelectorAll('button').forEach(function(button) {
+        button.remove();
+    });
 
-    function print_receipt() {
-        // Select the content of the container
-        var printContents = document.querySelector('.container-fluid').innerHTML;
+    // Get the updated HTML content of the container
+    
 
-        // Open a new window for printing
-        var receiptWindow = window.open('', '', 'height=600,width=800,location=no');
-        
-        // Write the HTML structure for the print window
-        receiptWindow.document.write('<html><head><title>Receipt</title>');
-        receiptWindow.document.write('<style>');
-        receiptWindow.document.write('table { border-collapse: collapse; width: 100%; }');
-        receiptWindow.document.write('th, td { border: 1px solid black; padding: 8px; text-align: left; font-size: 14px; }');
-        receiptWindow.document.write('th { background-color: #f2f2f2; }');
-        receiptWindow.document.write('body { font-size: 12px; margin: 20px; }');
-        receiptWindow.document.write('@media print { body { font-size: 10px; } }');
-        receiptWindow.document.write('</style>');
-        receiptWindow.document.write('</head><body>');
-        
-        // Header with Logo and Title
-        receiptWindow.document.write('<div style="text-align: center;">');
-        receiptWindow.document.write('<img src="img/logo.jpg" alt="Logo" style="width: 100px; height: auto;">'); // Use absolute URL
-        receiptWindow.document.write('<h1>M&M Cake Ordering</h1>');
-        receiptWindow.document.write('</div>');
-        
-        receiptWindow.document.write('<h2 style="font-size: 20px; text-align: center;">Receipt</h2>');
+    // Open a new window for printing
+    var receiptWindow = window.open('', '', 'height=600,width=800,location=no');
+    
+    // URL of your logo image (ensure this path is correct)
+    var logoUrl = 'img/logo.jpg'; // Update this path to your actual logo
 
-        // Write the table structure including headers and rows
-        receiptWindow.document.write('<div class="container-fluid">');
-        receiptWindow.document.write('<table class="table table-bordered">');
-        receiptWindow.document.write('<thead>');
-        receiptWindow.document.write('<tr>');
-        receiptWindow.document.write('<th>Customer Name</th>');
-        receiptWindow.document.write('<th>Order Number</th>');
-        receiptWindow.document.write('<th>Order Date</th>');
-        receiptWindow.document.write('<th>Address</th>');
-        receiptWindow.document.write('<th>Delivery Method</th>');
-        receiptWindow.document.write('<th>Payment Method</th>');
-        receiptWindow.document.write('<th>Qty</th>');
-        receiptWindow.document.write('<th>Product Name</th>');
-        receiptWindow.document.write('<th>Amount</th>');
-        receiptWindow.document.write('</tr>');
-        receiptWindow.document.write('</thead>');
+    // Write the HTML content to the new window
+    receiptWindow.document.write('<html><head><title>Receipt</title>');
+    receiptWindow.document.write('<style>');
+    receiptWindow.document.write('body { font-family: Arial, sans-serif; margin: 20px; }');
+    receiptWindow.document.write('table { width: 100%; border-collapse: collapse; margin-top: 20px; }');
+    receiptWindow.document.write('th, td { padding: 10px; border: 1px solid #ddd; text-align: left; }');
+    receiptWindow.document.write('th { background-color: #f4f4f4; }');
+    receiptWindow.document.write('.logo { text-align: center; margin-bottom: 20px; }');
+    receiptWindow.document.write('@media print { .no-print { display: none; } body { font-size: 10px; } }');
+    receiptWindow.document.write('</style></head><body>');
+    
+    // Header Section with Logo
+    receiptWindow.document.write('<div class="logo">');
+    receiptWindow.document.write('<img src="' + logoUrl + '" alt="Logo" width="100" height="100">');
+    receiptWindow.document.write('</div>');
+    
+    // Header Details
+    receiptWindow.document.write('<h2>Cake Order Receipt</h2>');
+    receiptWindow.document.write('<div>' + printContents + '</div>');
+    
+    // Footer
+    receiptWindow.document.write('<div class="total">');
+    receiptWindow.document.write('<p>This receipt serves as proof of purchase and does not qualify as a tax invoice.</p>');
+    receiptWindow.document.write('<p>Thank you for your purchase.</p>');
+    receiptWindow.document.write('</div>');
+    
+    receiptWindow.document.write('</body></html>');
+    
+    receiptWindow.document.close();
+    receiptWindow.print();
+}
 
-        // Add the table body content
-        receiptWindow.document.write('<tbody>');
-
-        // PHP code to generate the table rows
-        <?php
-        $total = 0;
-        include 'db_connect.php';
-        $qry = $conn->query("SELECT o.customer_name, o.order_number, o.order_date, o.address, o.delivery_method, o.payment, 
-                                    ol.qty, p.product_name, p.price 
-                             FROM orders o 
-                             INNER JOIN order_list ol ON o.id = ol.order_id 
-                             INNER JOIN product_list p ON ol.product_id = p.id 
-                             WHERE o.id = ".$_GET['id']);
-        while($row=$qry->fetch_assoc()):
-            $total += $row['qty'] * $row['price'];
-        ?>
-        receiptWindow.document.write('<tr>');
-        receiptWindow.document.write('<td><?php echo $row['customer_name'] ?></td>');
-        receiptWindow.document.write('<td><?php echo $row['order_number'] ?></td>');
-        receiptWindow.document.write('<td><?php echo date('Y-m-d', strtotime($row['order_date'])); ?></td>');
-        receiptWindow.document.write('<td><?php echo $row['address'] ?></td>');
-        receiptWindow.document.write('<td><?php echo $row['delivery_method'] ?></td>');
-        receiptWindow.document.write('<td><?php echo $row['payment'] ?></td>');
-        receiptWindow.document.write('<td><?php echo $row['qty'] ?></td>');
-        receiptWindow.document.write('<td><?php echo $row['product_name'] ?></td>');
-        receiptWindow.document.write('<td><?php echo number_format($row['qty'] * $row['price'], 2) ?></td>');
-        receiptWindow.document.write('</tr>');
-        <?php endwhile; ?>
-
-        receiptWindow.document.write('</tbody>');
-        receiptWindow.document.write('<tfoot>');
-        receiptWindow.document.write('<tr>');
-        receiptWindow.document.write('<th colspan="8" class="text-right">TOTAL</th>');
-        receiptWindow.document.write('<th><?php echo number_format($total, 2) ?></th>');
-        receiptWindow.document.write('</tr>');
-        receiptWindow.document.write('</tfoot>');
-        receiptWindow.document.write('</table>');
-        receiptWindow.document.write('</div>');
-
-        receiptWindow.document.write('</body></html>');
-        receiptWindow.document.close();
-        receiptWindow.focus(); // Ensures the window is focused before printing
-        receiptWindow.print();
-    }
 </script>
-</body>
-</html>
