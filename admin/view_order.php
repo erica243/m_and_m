@@ -96,7 +96,7 @@
     var container = document.querySelector('.container-fluid').cloneNode(true);
     
     // Remove unwanted elements from the cloned container
-    container.querySelectorAll('.logout, .mm-cake-ordering').forEach(function(element) {
+    container.querySelectorAll('').forEach(function(element) {
         element.remove();
     });
 
