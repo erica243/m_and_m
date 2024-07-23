@@ -99,7 +99,7 @@
     });
 
     // Get the updated HTML content of the container
-    var printContents = container.innerHTML;
+  
     
     // Data to include in the receipt
     var customerName = 'John Doe'; // Replace with actual customer name
