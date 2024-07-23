@@ -1,4 +1,28 @@
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .table th:nth-child(1) { width: 15%; }
+        .table th:nth-child(2) { width: 10%; }
+        .table th:nth-child(3) { width: 15%; }
+        .table th:nth-child(4) { width: 20%; }
+        .table th:nth-child(5) { width: 10%; }
+        .table th:nth-child(6) { width: 10%; }
+        .table th:nth-child(7) { width: 5%; }
+        .table th:nth-child(8) { width: 10%; }
+        .table th:nth-child(9) { width: 5%; }
+        .modal-dialog {
+            max-width: 90%; /* Adjust this value as needed */
+            margin: 30px auto; /* Centers the modal horizontally */
+        }
+        .modal-content {
+            width: 100%; /* Ensures the content takes full width of the dialog */
+        }
+     </style>
+</head>
 <div class="container-fluid">
     <table class="table table-bordered">
         <thead>
