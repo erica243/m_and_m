@@ -1,4 +1,4 @@
-E Ri Ca
+
 <div class="container-fluid">
     <table class="table table-bordered">
         <thead>
