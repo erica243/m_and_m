@@ -92,13 +92,7 @@
     }
 
     function print_receipt() {
-    // Clone the contents of the container
-    var container = document.querySelector('.container-fluid').cloneNode(true);
-    
- 
 
-    var printContents = container.innerHTML;
-    var receiptWindow = window.open('', '', 'height=600,width=800,location=no');
     
     // URL of your logo image
     var logoUrl = 'path/to/your/logo.png'; // Update this path to your actual logo
