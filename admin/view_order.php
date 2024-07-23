@@ -1,33 +1,42 @@
 
-
 <?php
 include 'db_connect.php'; // Ensure this file connects to your database
 
 $order_id = $_GET['id']; // Get the order ID from the request
 
-// Fetch order details from the orders table
-$order_query = $conn->query("SELECT * FROM orders WHERE id = $order_id");
-$order = $order_query->fetch_assoc();
+// Fetch order details
+$order_query = $conn->query("SELECT o.order_number, o.name AS customer_name, o.address, o.payment, p.name AS product_name, o.qty, p.price
+                             FROM orders o 
+                             INNER JOIN order_list ol ON o.id = ol.order_id 
+                             INNER JOIN product_list p ON ol.product_id = p.id 
+                             WHERE o.id = $order_id");
 
-// Fetch total amount from reports table
-$total_query = $conn->query("SELECT SUM(total_amount) AS total_amount FROM reports WHERE transaction_id = ".$order['transaction_id']);
-$total = $total_query->fetch_assoc()['total_amount'];
+// Initialize total amount
+$total_amount = 0;
+$order_details = [];
 
-// Calculate subtotal and shipping cost
-$subtotal = $total; // Adjust as necessary
-$shipping = 10.00; // Example shipping cost
-$total_amount = $subtotal + $shipping;
+// Process results
+while ($row = $order_query->fetch_assoc()) {
+    $total_amount += $row['qty'] * $row['price'];
+    $order_details[] = [
+        'product_name' => $row['product_name'],
+        'qty' => $row['qty'],
+        'price' => $row['price'],
+        'amount' => $row['qty'] * $row['price']
+    ];
+}
 
 // Output JSON data for use in JavaScript
-echo json_encode(array(
-    'customer_name' => $order['name'],
-    'order_date' => $order['order_date'],
-    'order_number' => $order['order_number'],
-    'subtotal' => $subtotal,
-    'shipping' => $shipping,
+echo json_encode([
+    'order_number' => $row['order_number'],
+    'customer_name' => $row['customer_name'],
+    'address' => $row['address'],
+    'payment_method' => $row['payment'],
+    'order_details' => $order_details,
     'total_amount' => $total_amount
-));
+]);
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -50,7 +59,7 @@ echo json_encode(array(
         <thead>
             <tr>
                 <th>Qty</th>
-                <th>Order</th>
+                <th>Product</th>
                 <th>Amount</th>
             </tr>
         </thead>
@@ -172,20 +181,31 @@ echo json_encode(array(
                 
                 // Header Details
                 receiptWindow.document.write('<h2>Cake Order Receipt</h2>');
-                receiptWindow.document.write('<p><strong>Customer Name:</strong> ' + data.customer_name + '</p>');
-                receiptWindow.document.write('<p><strong>Order Date:</strong> ' + new Date(data.order_date).toLocaleDateString() + '</p>');
                 receiptWindow.document.write('<p><strong>Order Number:</strong> ' + data.order_number + '</p>');
+                receiptWindow.document.write('<p><strong>Customer Name:</strong> ' + data.customer_name + '</p>');
+                receiptWindow.document.write('<p><strong>Address:</strong> ' + data.address + '</p>');
+                receiptWindow.document.write('<p><strong>Payment Method:</strong> ' + data.payment_method + '</p>');
                 
                 // Order Details Table
                 receiptWindow.document.write('<h3>Order Details</h3>');
-                receiptWindow.document.write('<div>' + printContents + '</div>');
+                receiptWindow.document.write('<table>');
+                receiptWindow.document.write('<thead><tr><th>Product</th><th>Qty</th><th>Price</th><th>Amount</th></tr></thead>');
+                receiptWindow.document.write('<tbody>');
+                data.order_details.forEach(detail => {
+                    receiptWindow.document.write('<tr>');
+                    receiptWindow.document.write('<td>' + detail.product_name + '</td>');
+                    receiptWindow.document.write('<td>' + detail.qty + '</td>');
+                    receiptWindow.document.write('<td>$' + detail.price.toFixed(2) + '</td>');
+                    receiptWindow.document.write('<td>$' + detail.amount.toFixed(2) + '</td>');
+                    receiptWindow.document.write('</tr>');
+                });
+                receiptWindow.document.write('</tbody>');
+                receiptWindow.document.write('</table>');
                 
-                // Footer with Subtotal, Shipping, and Total
+                // Footer with Total Amount
                 receiptWindow.document.write('<div class="total">');
                 receiptWindow.document.write('<table>');
-                receiptWindow.document.write('<tr><th>Subtotal:</th><td>$' + data.subtotal.toFixed(2) + '</td></tr>');
-                receiptWindow.document.write('<tr><th>Shipping:</th><td>$' + data.shipping.toFixed(2) + '</td></tr>');
-                receiptWindow.document.write('<tr><th>Total:</th><td>$' + data.total_amount.toFixed(2) + '</td></tr>');
+                receiptWindow.document.write('<tr><th>Total Amount:</th><td>$' + data.total_amount.toFixed(2) + '</td></tr>');
                 receiptWindow.document.write('</table>');
                 receiptWindow.document.write('<p>This receipt serves as proof of purchase and does not qualify as a tax invoice.</p>');
                 receiptWindow.document.write('<p>Thank you for your purchase.</p>');
