@@ -104,7 +104,7 @@
     var receiptWindow = window.open('', '', 'height=600,width=800,location=no');
     
     // URL of your logo image
-    var logoUrl = 'img/your/logo.jpg'; // Update this path to your actual logo
+    var logoUrl = 'img/logo.jpg'; // Update this path to your actual logo
 
     receiptWindow.document.write('<html><head><title>Receipt</title>');
     receiptWindow.document.write('<style>');
