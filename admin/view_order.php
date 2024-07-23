@@ -1,42 +1,4 @@
 
-<?php
-include 'db_connect.php'; // Ensure this file connects to your database
-
-$order_id = $_GET['id']; // Get the order ID from the request
-
-// Fetch order details
-$order_query = $conn->query("SELECT o.order_number, o.name AS customer_name, o.address, o.payment, p.name AS product_name, o.qty, p.price
-                             FROM orders o 
-                             INNER JOIN order_list ol ON o.id = ol.order_id 
-                             INNER JOIN product_list p ON ol.product_id = p.id 
-                             WHERE o.id = $order_id");
-
-// Initialize total amount
-$total_amount = 0;
-$order_details = [];
-
-// Process results
-while ($row = $order_query->fetch_assoc()) {
-    $total_amount += $row['qty'] * $row['price'];
-    $order_details[] = [
-        'product_name' => $row['product_name'],
-        'qty' => $row['qty'],
-        'price' => $row['price'],
-        'amount' => $row['qty'] * $row['price']
-    ];
-}
-
-// Output JSON data for use in JavaScript
-echo json_encode([
-    'order_number' => $row['order_number'],
-    'customer_name' => $row['customer_name'],
-    'address' => $row['address'],
-    'payment_method' => $row['payment'],
-    'order_details' => $order_details,
-    'total_amount' => $total_amount
-]);
-?>
-
 <div class="container-fluid">
     <table class="table table-bordered">
         <thead>
