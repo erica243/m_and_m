@@ -30,7 +30,8 @@ $avg_rating = $rating_qry->fetch_assoc()['avg_rating'];
 $avg_rating = $avg_rating ? number_format($avg_rating, 1) : 'No ratings yet';
 
 // Check product availability
-$availability = $qry['status']; // Assuming 'available' is a boolean or 1/0
+$availability = strtolower($qry['status']) === 'available'; // Ensure 'available' is compared properly
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -78,9 +79,10 @@ $availability = $qry['status']; // Assuming 'available' is a boolean or 1/0
                 </div>
             </div>
             <div class="text-center mb-4">
-                <button class="btn btn-outline-dark btn-sm btn-block" id="add_to_cart_modal" data-availability="<?php echo $availability ?>" <?php echo !$availability ? 'class="btn-disabled"' : '' ?>>
-                    <i class="fa fa-cart-plus"></i> Add to Cart
-                </button>
+            <button class="btn btn-outline-dark btn-sm btn-block" id="add_to_cart_modal" data-availability="<?php echo $availability ?>" <?php echo !$availability ? 'class="btn-disabled"' : '' ?>>
+    <i class="fa fa-cart-plus"></i> Add to Cart
+</button>
+
             </div>
             <!-- Rating Form -->
             <div class="rating-form">
@@ -128,41 +130,41 @@ $availability = $qry['status']; // Assuming 'available' is a boolean or 1/0
         var qty = $('input[name="qty"]').val();
         $('input[name="qty"]').val(parseInt(qty) + 1);
     });
-
-    // Handle "Add to Cart" button click
+    
     $('#add_to_cart_modal').click(function(){
-        var availability = $(this).data('availability');
-        
-        if (!availability) {
-            Swal.fire('Unavailable', 'This product is currently unavailable.', 'warning');
-            return;
-        }
-        
-        Swal.fire({
-            title: 'Add to Cart',
-            text: 'Are you sure you want to add this item to your cart?',
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes, add it!'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                $.ajax({
-                    url: 'admin/ajax.php?action=add_to_cart',
-                    method: 'POST',
-                    data: { pid: '<?php echo $product_id ?>', qty: $('[name="qty"]').val() },
-                    success: function(resp) {
-                        if (resp == 1) {
-                            Swal.fire('Added!', 'Item successfully added to cart.', 'success');
-                        } else {
-                            Swal.fire('Error!', 'Error adding item to cart.', 'error');
-                        }
+    var availability = $(this).data('availability');
+    
+    if (!availability) {
+        Swal.fire('Unavailable', 'This product is currently unavailable.', 'warning');
+        return;
+    }
+    
+    Swal.fire({
+        title: 'Add to Cart',
+        text: 'Are you sure you want to add this item to your cart?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, add it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: 'admin/ajax.php?action=add_to_cart',
+                method: 'POST',
+                data: { pid: '<?php echo $product_id ?>', qty: $('[name="qty"]').val() },
+                success: function(resp) {
+                    if (resp == 1) {
+                        Swal.fire('Added!', 'Item successfully added to cart.', 'success');
+                    } else {
+                        Swal.fire('Error!', 'Error adding item to cart.', 'error');
                     }
-                });
-            }
-        });
+                }
+            });
+        }
     });
+});
+
 
     // Handle rating submission
     $('.star').click(function(){
