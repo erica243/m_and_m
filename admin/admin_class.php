@@ -170,7 +170,7 @@ Class Action {
 
     // Handle file upload
     if (!empty($_FILES['img']['tmp_name'])) {
-        $fileName = strtotime(date('m-d-Y H:i')) . '_' . $_FILES['img']['name'];
+        $fileName = strtotime(date('Y-m-d H:i')) . '_' . $_FILES['img']['name'];
         $uploadDir = '../assets/img/';
         $uploadFile = $uploadDir . $fileName;
 
@@ -257,7 +257,7 @@ Class Action {
   function save_order() {
     // Use mysqli_real_escape_string to escape all inputs
     $order_number = rand(1000, 9999); // Example random order number
-    $order_date = date('m-d-Y H:i:s'); // Current date and time
+    $order_date = date('Y-m-d H:i:s'); // Current date and time
     $delivery_method = isset($_POST['order_type']) ? $_POST['order_type'] : 'Delivery'; // Default to delivery
     $first_name = $this->db->real_escape_string($_POST['first_name']);
     $last_name = $this->db->real_escape_string($_POST['last_name']);
@@ -307,7 +307,7 @@ Class Action {
     
     function confirm_order() {
         extract($_POST);
-        $date = date("m-d-Y H:i:s");
+        $date = date("Y-m-d H:i:s");
         $save = $this->db->query("UPDATE orders SET status = 1, created_at = '$date' WHERE id= ".$id);
         if($save)
             return 1;
