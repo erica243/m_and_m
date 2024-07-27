@@ -48,21 +48,15 @@
                     ?>
                     <tr>
                         <td><?php echo $i++ ?></td>
-                        <td><?php echo htmlspecialchars($row['order_number']) ?></td>
-                        <td><?php echo htmlspecialchars($row['name']) ?></td>
-                        <td><?php echo htmlspecialchars($row['address']) ?></td>
-                        <td><?php echo htmlspecialchars($row['email']) ?></td>
-                        <td><?php echo htmlspecialchars($row['mobile']) ?></td>
-                        <td><?php 
-                            if (!empty($row['order_date'])) {
-                                echo date('m-d-Y', strtotime($row['order_date']));
-                            } else {
-                                echo 'N/A'; // Handle empty dates
-                            }
-                        ?></td>
-                        <td><?php echo htmlspecialchars($row['delivery_method']) ?></td>
+                        <td><?php echo $row['order_number'] ?></td>
+                        <td><?php echo $row['name'] ?></td>
+                        <td><?php echo $row['address'] ?></td>
+                        <td><?php echo $row['email'] ?></td>
+                        <td><?php echo $row['mobile'] ?></td>
+                        <td><?php echo date('m-d-Y', strtotime($row['order_date'])); ?></td>
+                        <td><?php echo $row['delivery_method'] ?></td>
                         <td><?php echo !empty($row['pickup_date']) ? date('m-d-Y', strtotime($row['pickup_date'])) : 'N/A'; ?></td>
-                        <td><?php echo !empty($row['pickup_time']) ? htmlspecialchars($row['pickup_time']) : 'N/A'; ?></td>
+                        <td><?php echo !empty($row['pickup_time']) ? $row['pickup_time'] : 'N/A'; ?></td>
                         <?php if($row['status'] == 1): ?>
                             <td class="text-center"><span class="badge badge-success">Confirmed</span></td>
                         <?php else: ?>
