@@ -38,7 +38,9 @@ function test_cypher_decrypt($encryption){
   <link href="assets/DataTables/datatables.min.css" rel="stylesheet">
   <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        
         <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&display=swap" rel="stylesheet">
+        <link rel = "icon" href="assets/img/1.jpg"  type = ".///image/x-icon">
         <style>
         @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&display=swap');
         </style>
@@ -46,6 +48,7 @@ function test_cypher_decrypt($encryption){
   <!-- Template Main CSS File -->
   <link href="assets/css/style.css" rel="stylesheet">
   <link type="text/css" rel="stylesheet" href="assets/css/jquery-te-1.4.0.css">
+  <link rel = "icon" href="1.jpg"  type = ".///image/x-icon">
   
   <script src="assets/vendor/jquery/jquery.min.js"></script>
   

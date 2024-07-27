@@ -1,8 +1,8 @@
 <?php
 include 'admin/db_connect.php';
-// var_dump($_SESSION);
-$chk = $conn->query("SELECT * FROM cart where user_id = {$_SESSION['login_user_id']} ")->num_rows;
-if($chk <= 0){
+
+$chk = $conn->query("SELECT * FROM cart WHERE user_id = {$_SESSION['login_user_id']}")->num_rows;
+if ($chk <= 0) {
     echo "<script>alert('You don\'t have an Item in your cart yet.'); location.replace('./')</script>";
 }
 ?>
@@ -22,7 +22,7 @@ if($chk <= 0){
             <form action="" id="checkout-frm">
                 <h4>Select Payment Method</h4>
                 <div class="form-group">
-                    <select name="payment_method" id="payment_method" class="form-control" required="">
+                    <select name="payment_method" id="payment_method" class="form-control" required>
                         <option value="">Select Payment Method</option>
                         <option value="cash">Cash on Delivery</option>
                         <option value="gcash">G-Cash</option>
@@ -31,51 +31,53 @@ if($chk <= 0){
                 </div>
 
                 <!-- Delivery or Pick-up Selection -->
-                <div class="form-group gcash-info" style="display:none;">
-                    <label for="" class="control-label">Order Type</label>
+                <div class="form-group order-type-selection" style="display:none;">
+                    <label class="control-label">Order Type</label>
                     <div>
-                        <label><input type="checkbox" name="order_type" value="delivery" id="delivery"> Delivery</label>
-                        <label><input type="checkbox" name="order_type" value="pickup" id="pickup"> Pick-up</label>
+                        <label><input type="radio" name="order_type" value="delivery" id="delivery"> Delivery</label>
+                        <label><input type="radio" name="order_type" value="pickup" id="pickup"> Pick-up</label>
                     </div>
                 </div>
                 <!-- End Delivery or Pick-up Selection -->
 
                 <div class="form-group delivery-info">
-                    <label for="" class="control-label">Firstname</label>
-                    <input type="text" name="first_name" required="" class="form-control" value="<?php echo $_SESSION['login_first_name'] ?>">
+    <label class="control-label">Firstname</label>
+    <input type="text" name="first_name" required class="form-control" value="<?php echo htmlspecialchars($_SESSION['login_first_name']); ?>" readonly>
+</div>
+
+                <div class="form-group delivery-info">
+                    <label class="control-label">Lastname</label>
+                    <input type="text" name="last_name" required class="form-control" value="<?php echo $_SESSION['login_last_name'] ?>" readonly>
                 </div>
                 <div class="form-group delivery-info">
-                    <label for="" class="control-label">Lastname</label>
-                    <input type="text" name="last_name" required="" class="form-control" value="<?php echo $_SESSION['login_last_name'] ?>">
+                    <label class="control-label">Contact</label>
+                    <input type="text" name="mobile" required class="form-control" value="<?php echo $_SESSION['login_mobile'] ?>" readonly>
                 </div>
                 <div class="form-group delivery-info">
-                    <label for="" class="control-label">Contact</label>
-                    <input type="text" name="mobile" required="" class="form-control" value="<?php echo $_SESSION['login_mobile'] ?>">
-                </div>
+    <label class="control-label">Address</label>
+    <textarea cols="30" rows="3" name="address" required class="form-control" readonly><?php echo htmlspecialchars($_SESSION['login_address']); ?></textarea>
+</div>
+
                 <div class="form-group delivery-info">
-                    <label for="" class="control-label">Address</label>
-                    <textarea cols="30" rows="3" name="address" required="" class="form-control"><?php echo $_SESSION['login_address'] ?></textarea>
-                </div>
-                <div class="form-group delivery-info">
-                    <label for="" class="control-label">Email</label>
-                    <input type="email" name="email" required="" class="form-control" value="<?php echo $_SESSION['login_email'] ?>">
+                    <label class="control-label">Email</label>
+                    <input type="email" name="email" required class="form-control" value="<?php echo $_SESSION['login_email'] ?>" readonly>
                 </div>
 
                 <!-- Pick-up Date and Time -->
-                <div class="form-group pickup-info" style="display:none;">
-                    <label for="" class="control-label">Pick-up Date</label>
-                    <input type="date" name="pickup_date" class="form-control">
-                </div>
-                <div class="form-group pickup-info" style="display:none;">
-                    <label for="" class="control-label">Pick-up Time</label>
-                    <input type="time" name="pickup_time" class="form-control">
-                </div>
-                <!-- End Pick-up Date and Time -->
+<div class="form-group pickup-info" style="display:none;">
+    <label class="control-label">Pick-up Date</label>
+    <input type="date" name="pickup_date" class="form-control" min="<?php echo date('m-d-Y'); ?>">
+</div>
+<div class="form-group pickup-info" style="display:none;">
+    <label class="control-label">Pick-up Time</label>
+    <input type="time" name="pickup_time" class="form-control">
+</div>
+<!-- End Pick-up Date and Time -->
 
                 <!-- Agreement Checkbox -->
                 <div class="form-group">
                     <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="agree_terms" required="">
+                        <input class="form-check-input" type="checkbox" id="agree_terms" required>
                         <label class="form-check-label" for="agree_terms">
                             I agree that orders cannot be canceled after placing.
                         </label>
@@ -93,37 +95,37 @@ if($chk <= 0){
 
 <!-- SweetAlert2 CDN -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
-
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     $(document).ready(function(){
         $('#payment_method').change(function(){
-            if($(this).val() == 'gcash') {
-                $('.gcash-info').show();
+            if ($(this).val() == 'gcash') { // Update the value to 'gcash' to match the option value
+                Swal.fire({
+                    title: 'Scan QR Code with G-Cash',
+                    imageUrl: 'assets/img/gcash.jpg', // Update this to the path of your QR code image
+                    imageWidth: 500,
+                    imageHeight: 600,
+                    imageAlt: 'G-Cash QR Code',
+                    showCloseButton: true,
+                    confirmButtonText: 'Proceed',
+                    onClose: () => {
+                        $('.order-type-selection').show();
+                    }
+                });
             } else {
-                $('.gcash-info').hide();
-                $('.delivery-info').show();
-                $('.pickup-info').hide();
-                $('#delivery').prop('checked', false);
-                $('#pickup').prop('checked', false);
+                $('.order-type-selection').show();
             }
         });
 
-        $('#delivery').change(function(){
-            if($(this).is(':checked')) {
+        $('input[name="order_type"]').change(function(){
+            if ($('#delivery').is(':checked')) {
                 $('.delivery-info').show();
                 $('.pickup-info').hide();
-                $('#pickup').prop('checked', false);
-            } else {
-                $('.delivery-info').hide();
-            }
-        });
-
-        $('#pickup').change(function(){
-            if($(this).is(':checked')) {
+            } else if ($('#pickup').is(':checked')) {
                 $('.pickup-info').show();
                 $('.delivery-info').hide();
-                $('#delivery').prop('checked', false);
             } else {
+                $('.delivery-info').hide();
                 $('.pickup-info').hide();
             }
         });
@@ -144,11 +146,11 @@ if($chk <= 0){
 
             start_load();
             $.ajax({
-                url:"admin/ajax.php?action=save_order",
-                method:'POST',
-                data:$(this).serialize(),
-                success:function(resp){
-                    if(resp==1){
+                url: "admin/ajax.php?action=save_order",
+                method: 'POST',
+                data: $(this).serialize(),
+                success: function(resp){
+                    if (resp == 1) {
                         Swal.fire({
                             icon: 'success',
                             title: 'Order Placed Successfully!',
@@ -180,4 +182,12 @@ if($chk <= 0){
             });
         });
     });
+
+    function start_load(){
+        // Add your loading start code here
+    }
+
+    function end_load(){
+        // Add your loading end code here
+    }
 </script>

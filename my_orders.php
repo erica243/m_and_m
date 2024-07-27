@@ -1,79 +1,153 @@
-<div class="container-fluid">
-    <table class="table table-bordered">
-        <thead>
-            <tr>
-                <th>Qty</th>
-                <th>Order</th>
-                <th>Amount</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php 
-            $total = 0;
-            include 'admin/db_connect.php'; // Adjust path if necessary
-            $qry = $conn->query("SELECT * FROM order_list o INNER JOIN product_list p ON o.product_id = p.id WHERE order_id = ".$_GET['id']);
-            while($row = $qry->fetch_assoc()):
-                $subtotal = $row['qty'] * $row['price'];
-                $total += $subtotal;
-            ?>
-            <tr>
-                <td><?php echo $row['qty'] ?></td>
-                <td><?php echo $row['name'] ?></td>
-                <td><?php echo number_format($subtotal, 2) ?></td>
-            </tr>
-            <?php endwhile; ?>
-        </tbody>
-        <tfoot>
-            <tr>
-                <th colspan="2" class="text-right">TOTAL</th>
-                <th><?php echo number_format($total, 2) ?></th>
-            </tr>
-        </tfoot>
-    </table>
-    <div class="text-center">
-        <button class="btn btn-primary" id="confirm" type="button" onclick="confirm_order('<?php echo $_GET['id'] ?>')">Confirm</button>
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-        <button class="btn btn-success" type="button" onclick="print_receipt()">Print Receipt</button>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Order</title>
+    <style>
+        /* Basic Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Container Styling */
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+
+        /* Heading */
+        h2 {
+            margin-bottom: 20px;
+            font-size: 24px;
+            color: #333;
+            text-align: center;
+        }
+
+        /* Table Styling */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        /* Table Headers */
+        thead th {
+            background-color: #f4f4f4;
+            border-bottom: 2px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+
+        /* Table Rows */
+        tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        tbody td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        /* Submit Button */
+        .btn-primary {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            display: inline-block;
+            text-align: center;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+
+        /* Error Message */
+        .text-danger {
+            color: #dc3545;
+            text-align: center;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>My Orders</h2>
+        <?php
+        session_start();
+        include 'admin/db_connect.php';
+
+        // Ensure user_id is available
+        if (!isset($_SESSION['login_user_id'])) {
+            die("User not logged in.");
+        }
+
+        $user_id = $_SESSION['login_user_id'];
+
+        // Fetch all orders for the logged-in user
+        $query = "SELECT * FROM orders WHERE id = ?";
+        $stmt = $conn->prepare($query);
+
+        if ($stmt === false) {
+            die("Failed to prepare the SQL statement: " . htmlspecialchars($conn->error));
+        }
+
+        $stmt->bind_param("i", $user_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        // Check if there are any orders
+        if ($result->num_rows > 0):
+        ?>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Payment Method</th>
+                    <th>Order Type</th>
+                    <th>Address</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php while ($order = $result->fetch_assoc()): ?>
+                <tr>
+                    <td><?php echo htmlspecialchars($order['order_number']); ?></td>
+                    <td><?php echo htmlspecialchars($order['payment_method']); ?></td>
+                    <td><?php echo htmlspecialchars($order['delivery_method']); ?></td>
+                    <td><?php echo htmlspecialchars($order['address']); ?></td>
+                    <td>
+                        <?php
+                        // Check the status and display accordingly
+                        if ($order['status'] == '1' 
+                        ) {
+                            echo "Confirmed";
+                        } else {
+                            echo "Pending"; // Or use htmlspecialchars($order['status']) if it can be a different value
+                        }
+                        ?>
+                    </td>
+                    <td><?php echo htmlspecialchars($order['order_date']); ?></td>
+                </tr>
+                <?php endwhile; ?>
+            </tbody>
+        </table>
+        <?php
+        else:
+            echo "<p>You have no orders.</p>";
+        endif;
+
+        $stmt->close();
+        $conn->close();
+        ?>
     </div>
-</div>
-
-<script>
-    function confirm_order(orderId) {
-        start_load();
-        $.ajax({
-            url: 'admin/ajax.php?action=confirm_order',
-            method: 'POST',
-            data: { id: orderId },
-            success: function(resp) {
-                if (resp == 1) {
-                    alert_toast("Order confirmed.");
-                    setTimeout(function() {
-                        location.reload();
-                    }, 1500);
-                } else {
-                    alert_toast("Error confirming order: " + resp, 'danger');
-                }
-                end_load();
-            }
-        });
-    }
-
-    function print_receipt() {
-        var printContents = document.querySelector('.container-fluid').innerHTML;
-        var receiptWindow = window.open('', '', 'height=600,width=800,location=no');
-        receiptWindow.document.write('<html><head><title>Receipt</title>');
-        receiptWindow.document.write('<style>');
-        receiptWindow.document.write('table { border-collapse: collapse; width: 100%; }');
-        receiptWindow.document.write('th, td { border: 1px solid black; padding: 8px; text-align: left; font-size: 14px; }');
-        receiptWindow.document.write('th { background-color: #f2f2f2; }');
-        receiptWindow.document.write('body { font-size: 12px; }');
-        receiptWindow.document.write('@media print { body { font-size: 10px; } }');
-        receiptWindow.document.write('</style>');
-        receiptWindow.document.write('</head><body>');
-        receiptWindow.document.write('<h1 style="font-size: 20px; text-align: center;">Receipt</h1>');
-        receiptWindow.document.write(printContents);
-        receiptWindow.document.write('</body></html>');
-        receiptWindow.document.close();
-        receiptWindow.print();
-    }
-</script>
+</body>
+</html>

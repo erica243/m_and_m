@@ -10,9 +10,10 @@
 			<input type="text" name="last_name" required="" class="form-control">
 		</div>
 		<div class="form-group">
-			<label for="" class="control-label">Contact</label>
-			<input type="text" name="mobile" required="" class="form-control">
-		</div>
+    <label for="" class="control-label">Contact</label>
+    <input type="text" name="mobile" required="" class="form-control" maxlength="11">
+</div>
+
 		<div class="form-group">
 			<label for="" class="control-label">Address</label>
 			<textarea cols="30" rows="3" name="address" required="" class="form-control"></textarea>
@@ -60,3 +61,4 @@
 		})
 	})
 </script>
+

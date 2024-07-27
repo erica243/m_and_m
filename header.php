@@ -38,6 +38,7 @@ function test_cypher_decrypt($encryption){
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&display=swap" rel="stylesheet">
+        <link rel = "icon" href="assets/img/1.jpg"  type = ".///image/x-icon">
         <style>
         @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&display=swap');
         </style>
