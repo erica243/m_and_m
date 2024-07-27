@@ -31,7 +31,7 @@
             <hr class="border-dark" width="5%">
         </div>
         <div id="menu-field" class="card-deck mt-2">
-             <?php 
+            <?php 
                 include 'admin/db_connect.php';
                 $limit = 10;
                 $page = (isset($_GET['_page']) && $_GET['_page'] > 0) ? $_GET['_page'] - 1 : 0;
@@ -52,13 +52,12 @@
                         <p class="card-text">Size: <?php echo htmlspecialchars($row['size']); ?></p>
                         <p class="card-text">Price: <?php echo htmlspecialchars($row['price']); ?></p>
                         <p class="card-text">
-    Availability: 
-    <?php 
-        echo htmlspecialchars($row['status'] );
-    ?>
-</p>
+                            Availability: <?php echo htmlspecialchars($row['status']); ?>
+                        </p>
                         <div class="text-center">
-                            <button class="btn btn-sm btn-outline-dark view_prod btn-block" data-id="<?php echo htmlspecialchars($row['id']); ?>"><i class="fa fa-eye"></i> View</button>
+                            <button class="btn btn-sm btn-outline-dark view_prod btn-block" data-id="<?php echo htmlspecialchars($row['id']); ?>" <?php echo ($row['status'] == 'Unavailable') ? 'disabled' : ''; ?>>
+                                <i class="fa fa-eye"></i> View
+                            </button>
                         </div>
                     </div>
                 </div>
