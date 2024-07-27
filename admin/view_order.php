@@ -33,9 +33,6 @@ $stmt->execute();
 $order = $stmt->get_result()->fetch_assoc();
 $orderStatus = $order['status']; // 1 for confirmed, 0 for not confirmed
 
-// Convert the order date to 'm-d-Y' format
-$formatted_order_date = date("m-d-Y", strtotime($order['order_date']));
-
 // Fetch order items
 $stmt = $conn->prepare("SELECT o.qty, p.name, p.description, p.price, 
                                 (o.qty * p.price) AS amount
@@ -72,15 +69,15 @@ $orderItems = $stmt->get_result();
                 $total += $row['amount'];
             ?>
             <tr>
-                <td><?php echo $formatted_order_date; ?></td>
-                <td><?php echo $order['order_number']; ?></td>
-                <td><?php echo $order['name']; ?></td>
-                <td><?php echo $order['address']; ?></td>
-                <td><?php echo $order['delivery_method']; ?></td>
-                <td><?php echo $order['payment_method']; ?></td>
-                <td><?php echo $row['qty']; ?></td>
-                <td><?php echo $row['name']; ?></td>
-                <td><?php echo $row['description']; ?></td>
+                <td><?php echo date('m-d-Y', strtotime($order['order_date'])); ?></td>
+                <td><?php echo htmlspecialchars($order['order_number']); ?></td>
+                <td><?php echo htmlspecialchars($order['name']); ?></td>
+                <td><?php echo htmlspecialchars($order['address']); ?></td>
+                <td><?php echo htmlspecialchars($order['delivery_method']); ?></td>
+                <td><?php echo htmlspecialchars($order['payment_method']); ?></td>
+                <td><?php echo htmlspecialchars($row['qty']); ?></td>
+                <td><?php echo htmlspecialchars($row['name']); ?></td>
+                <td><?php echo htmlspecialchars($row['description']); ?></td>
                 <td><?php echo number_format($row['price'], 2); ?></td>
                 <td><?php echo number_format($row['amount'], 2); ?></td>
             </tr>
@@ -149,50 +146,43 @@ $orderItems = $stmt->get_result();
         });
     }
 
-  function print_receipt() {
-    var receiptWindow = window.open('', '', 'height=600,width=800,location=no');
-    var logoUrl = 'assets/img/logo.jpg'; // Full URL
+    function print_receipt() {
+        var receiptWindow = window.open('', '', 'height=600,width=800,location=no');
+        var logoUrl = 'assets/img/logo.jpg'; // Full URL
 
-    var orderNumber = '<?php echo $order["order_number"]; ?>';
-    var orderDate = '<?php echo $formatted_order_date; ?>'; // Use formatted date
-    var customerName = '<?php echo $order["name"]; ?>';
-    var address = '<?php echo $order["address"]; ?>';
-    var deliveryMethod = '<?php echo $order["delivery_method"]; ?>';
-    var paymentMethod = '<?php echo $order["payment_method"]; ?>';
-    var totalAmount = '<?php echo number_format($total, 2); ?>';
+        var orderNumber = '<?php echo htmlspecialchars($order["order_number"]); ?>';
+        var orderDate = '<?php echo date('m-d-Y', strtotime($order["order_date"])); ?>';
+        var customerName = '<?php echo htmlspecialchars($order["name"]); ?>';
+        var address = '<?php echo htmlspecialchars($order["address"]); ?>';
+        var deliveryMethod = '<?php echo htmlspecialchars($order["delivery_method"]); ?>';
+        var paymentMethod = '<?php echo htmlspecialchars($order["payment_method"]); ?>';
+        var totalAmount = '<?php echo number_format($total, 2); ?>';
 
-    var headerContent = '<div style="text-align: center; margin-bottom: 20px;">' +
-        '<img src="' + logoUrl + '" alt="Logo">' +
-        '<h2>M&M Cake Ordering System</h2>' +
-        '<p>Poblacion Madridejos, Cebu</p>' +
-        '<p>erica204chavez@gmail.com</p>' +
-        '</div>';
+        var tableContent = '<table><thead><tr>' +
+            '<th>Product</th>' +
+            '<th>Description</th>' +
+            '<th>Qty</th>' +
+            '<th>Price</th>' +
+            '<th>Amount</th>' +
+            '</tr></thead><tbody>';
 
-    var tableContent = '<table><thead><tr>' +
-        '<th>Product</th>' +
-        '<th>Description</th>' +
-        '<th>Qty</th>' +
-        '<th>Price</th>' +
-        '<th>Amount</th>' +
-        '</tr></thead><tbody>';
-
-    <?php
-    $stmt->execute();
-    $orderItems = $stmt->get_result();
-    while ($row = $orderItems->fetch_assoc()):
-    ?>
-    tableContent += '<tr>' +
-        '<td><?php echo $row["name"]; ?></td>' +
-        '<td><?php echo $row["description"]; ?></td>' +
-        '<td><?php echo $row["qty"]; ?></td>' +
-        '<td><?php echo number_format($row["price"], 2); ?></td>' +
-        '<td><?php echo number_format($row["amount"], 2); ?></td>' +
-        '</tr>';
-    <?php endwhile; ?>
-    tableContent += '</tbody><tfoot><tr>' +
-        '<th colspan="4" style="text-align: right;">TOTAL</th>' +
-        '<th><?php echo number_format($total, 2); ?></th>' +
-        '</tr></tfoot></table>';
+        <?php
+        $stmt->execute();
+        $orderItems = $stmt->get_result();
+        while ($row = $orderItems->fetch_assoc()):
+        ?>
+        tableContent += '<tr>' +
+            '<td><?php echo htmlspecialchars($row["name"]); ?></td>' +
+            '<td><?php echo htmlspecialchars($row["description"]); ?></td>' +
+            '<td><?php echo htmlspecialchars($row["qty"]); ?></td>' +
+            '<td><?php echo number_format($row["price"], 2); ?></td>' +
+            '<td><?php echo number_format($row["amount"], 2); ?></td>' +
+            '</tr>';
+        <?php endwhile; ?>
+        tableContent += '</tbody><tfoot><tr>' +
+            '<th colspan="4" style="text-align: right;">TOTAL</th>' +
+            '<th><?php echo number_format($total, 2); ?></th>' +
+            '</tr></tfoot></table>';
 
     receiptWindow.document.write('<html><head><title>Receipt</title>');
     receiptWindow.document.write('<style>');
