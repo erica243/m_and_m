@@ -34,8 +34,7 @@ $order = $stmt->get_result()->fetch_assoc();
 $orderStatus = $order['status']; // 1 for confirmed, 0 for not confirmed
 
 // Convert the order date to 'm-d-Y' format
-$formatted_order_date = date("F d, Y", strtotime($order['order_date']));
-
+$formatted_order_date = date("m-d-Y", strtotime($order['order_date']));
 
 // Fetch order items
 $stmt = $conn->prepare("SELECT o.qty, p.name, p.description, p.price, 
