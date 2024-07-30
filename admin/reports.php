@@ -72,6 +72,11 @@ $result = $conn->query($query);
 <?php
 $conn->close();
 ?>
+</div>
+</div></div>
+</div></div>
+</div></div>
+</div>
 
 <script>
 function printReport() {
@@ -99,7 +104,6 @@ function printReport() {
             th { background-color: #f2f2f2; }
         </style>
     `;
-
     document.body.innerHTML = "<html><head><title>Order Reports</title>" + style + "</head><body>" + headerContent + printContents + "</body></html>";
 
     // Ensure the image is loaded before printing
