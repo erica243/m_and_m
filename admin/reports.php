@@ -73,6 +73,9 @@ $result = $conn->query($query);
 $conn->close();
 ?>
 </div>
+</div></div>
+</div></div>
+</div></div>
 </div>
 
 <script>
