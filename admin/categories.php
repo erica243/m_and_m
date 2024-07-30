@@ -84,6 +84,18 @@
 	$(document).ready(function() {
 		$('#manage-category').submit(function(e){
 			e.preventDefault();
+			
+			var categoryName = $.trim($("[name='name']").val()); // Trim whitespace
+			
+			if (categoryName === '') {
+				Swal.fire({
+					icon: 'error',
+					title: 'Error!',
+					text: 'Category name cannot be empty.',
+				});
+				return; // Prevent submission if empty
+			}
+			
 			$.ajax({
 				url: 'ajax.php?action=save_category',
 				data: new FormData($(this)[0]),
