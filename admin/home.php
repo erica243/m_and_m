@@ -274,11 +274,11 @@ if ($result->num_rows > 0) {
     <!-- Pending Orders Card -->
     <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12 mb-3">
         <div class="card rounded-0 shadow card-custom bg-light-red">
-            <div class="card-body" style="background: #ff99ff; color: orange;">
+            <div class="card-body" style="background: #ff99ff; color: red;">
                 <div class="media">
                     <div class="media-left meida media-middle"> 
-                        <span><i class="fa fa-clock bounce" style="height: 50px; width: 50px;" aria-hidden="true"></i></span>
-                    </div>
+                                <span><i class="fa fa-times-circle bounce" style="height: 50px; width: 50px;" aria-hidden="true"></i></span>
+                            </div>
                     <div class="media-body media-text-center">
                         <h5 class="text-right" style="color: black; font-size: 30px; font-family: courier-new;">Pending Orders</h5>
                         <h2 class="text-right" style="color: black;"><b><?= number_format($cancelled_orders) ?></b></h2>
@@ -375,7 +375,7 @@ if ($result->num_rows > 0) {
 </div>
  <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12 mb-3">
     <div class="card rounded-0 shadow card-custom bg-blue">
-            <div class="card-body" style="background: #8f61e8; color: #ff7733;">
+           <div class="card-body" style="background: #fff3cd; color: #856404;">
                 <div class="media">
                     <div class="media-left meida media-middle"> 
                         <span><i class=" fa fa-shopping-cart bounce" style="height: 50px; width: 50px;" aria-hidden="true"></i></span>
@@ -393,16 +393,24 @@ if ($result->num_rows > 0) {
         
 
 
-    <!-- Pie Chart -->
-<div class="col-md-6">
-    <h3>Sales by Address</h3>
-    <canvas id="salesByAddressChart" style="width: 100%; height: 400px;"></canvas>
-</div>
-<!-- Bar Chart -->
-<div class="col-md-6">
-    <h3>Monthly Sales</h3>
-    <canvas id="monthlySalesChart" style="width: 100%; height: 400px;"></canvas>
-</div>
+   <style>
+        .chart {
+            width: 100% !important; /* Ensures the canvas uses 100% of the parent's width */
+            max-width: 600px; /* Maximum width of the canvas */
+            height: 500px !important; /* Fixed height of the canvas */
+        }
+    </style>
+</head>
+<body>
+    <div class="col-md-6">
+        <h3>Sales by Address</h3>
+        <canvas id="salesByAddressChart" class="chart"></canvas>
+    </div>
+
+    <div class="col-md-6">
+        <h3>Monthly Sales</h3>
+        <canvas id="monthlySalesChart" class="chart"></canvas>
+    </div>
 
 <script>
     // Pie Chart
@@ -419,29 +427,31 @@ if ($result->num_rows > 0) {
         }
     });
 
-    // Bar Chart
-    const monthlySalesCtx = document.getElementById('monthlySalesChart').getContext('2d');
-    const monthlySalesLabels = Object.keys(<?= json_encode($monthly_sales_data) ?>);
-    const monthlySalesData = Object.values(<?= json_encode($monthly_sales_data) ?>);
-    new Chart(monthlySalesCtx, {
-        type: 'bar',
-        data: {
-            labels: monthlySalesLabels,
-            datasets: [{
-                label: 'Sales',
-                data: monthlySalesData,
-                backgroundColor: '#007bff'
-            }]
-        },
-        options: {
-            scales: {
-                y: {
-                    beginAtZero: true
+     // Bar Chart
+        const monthlySalesCtx = document.getElementById('monthlySalesChart').getContext('2d');
+        const monthlySalesLabels = Object.keys(<?= json_encode($monthly_sales_data) ?>);
+        const monthlySalesData = Object.values(<?= json_encode($monthly_sales_data) ?>);
+        new Chart(monthlySalesCtx, {
+            type: 'bar',
+            data: {
+                labels: [
+                    'January', 'February', 'March', 'April', 'May', 'June',
+                    'July', 'August', 'September', 'October', 'November', 'December'
+                ],
+                datasets: [{
+                    label: 'Sales',
+                    data: monthlySalesLabels.map(month => monthlySalesData[month] || 0),
+                    backgroundColor: '#007bff'
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
                 }
             }
-        }
-    });
-</script>
-
+        });
+    </script>
 </body>
 </html>
