@@ -1,5 +1,3 @@
-
-Keneth Ducay Batusbatusan
 <?php
 include 'admin/db_connect.php';
 
