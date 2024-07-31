@@ -1,3 +1,26 @@
+
+Keneth Ducay Batusbatusan
+<?php
+include 'admin/db_connect.php';
+
+// Default limit and pagination
+$limit = 10;
+$page = (isset($_GET['_page']) && $_GET['_page'] > 0) ? $_GET['_page'] - 1 : 0;
+$offset = $page > 0 ? $page * $limit : 0;
+
+// Get search parameter
+$search = isset($_GET['search']) ? $conn->real_escape_string($_GET['search']) : '';
+
+// Modify query based on search parameter
+$search_query = $search ? "WHERE name LIKE '%$search%' OR description LIKE '%$search%'" : '';
+$qry = $conn->query("SELECT id, name, description, img_path, size, price, status FROM product_list $search_query ORDER BY name ASC LIMIT $limit OFFSET $offset");
+
+// Get total count of items based on search
+$total_count_query = $conn->query("SELECT id FROM product_list $search_query");
+$all_menu = $total_count_query->num_rows;
+$page_btn_count = ceil($all_menu / $limit);
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -30,46 +53,52 @@
         <div class="d-flex justify-content-center">
             <hr class="border-dark" width="5%">
         </div>
-        <div id="menu-field" class="card-deck mt-2">
-             <?php 
-                include 'admin/db_connect.php';
-                $limit = 10;
-                $page = (isset($_GET['_page']) && $_GET['_page'] > 0) ? $_GET['_page'] - 1 : 0;
-                $offset = $page > 0 ? $page * $limit : 0;
-                $all_menu = $conn->query("SELECT id FROM product_list")->num_rows;
-                $page_btn_count = ceil($all_menu / $limit);
-                $qry = $conn->query("SELECT id, name, description, img_path, size, price, status FROM product_list ORDER BY name ASC LIMIT $limit OFFSET $offset");
-                while ($row = $qry->fetch_assoc()):
-            ?>
-            <div class="col-lg-3 mb-3">
-                <div class="card menu-item rounded-0">
-                    <div class="position-relative overflow-hidden" id="item-img-holder">
-                        <img src="assets/img/<?php echo htmlspecialchars($row['img_path']); ?>" class="card-img-top" alt="...">
+        <!-- Search Bar -->
+        <div class="container">
+            <form method="GET" action="">
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" placeholder="Search for cakes..." name="search" value="<?php echo htmlspecialchars($search); ?>">
+                    <div class="input-group-append">
+                        <button class="btn btn-dark" type="submit">Search for Cakes</button>
                     </div>
-                    <div class="card-body rounded-0">
-                        <h5 class="card-title"><?php echo htmlspecialchars($row['name']); ?></h5>
-                        <p class="card-text truncate"><?php echo htmlspecialchars($row['description']); ?></p>
-                        <p class="card-text">Size: <?php echo htmlspecialchars($row['size']); ?></p>
-                        <p class="card-text">Price: <?php echo htmlspecialchars($row['price']); ?></p>
-                        <p class="card-text">
-    Availability: 
-    <?php 
-        echo htmlspecialchars($row['status'] );
-    ?>
-</p>
-                        <div class="text-center">
-                            <button class="btn btn-sm btn-outline-dark view_prod btn-block" data-id="<?php echo htmlspecialchars($row['id']); ?>"><i class="fa fa-eye"></i> View</button>
+                </div>
+            </form>
+        </div>
+        <div id="menu-field" class="card-deck mt-2">
+            <?php if ($all_menu > 0): ?>
+                <?php while ($row = $qry->fetch_assoc()): ?>
+                <div class="col-lg-3 mb-3">
+                    <div class="card menu-item rounded-0">
+                        <div class="position-relative overflow-hidden" id="item-img-holder">
+                            <img src="assets/img/<?php echo htmlspecialchars($row['img_path']); ?>" class="card-img-top" alt="...">
+                        </div>
+                        <div class="card-body rounded-0">
+                            <h5 class="card-title"><?php echo htmlspecialchars($row['name']); ?></h5>
+                            <p class="card-text truncate"><?php echo htmlspecialchars($row['description']); ?></p>
+                            <p class="card-text">Size: <?php echo htmlspecialchars($row['size']); ?></p>
+                            <p class="card-text">Price: <?php echo htmlspecialchars($row['price']); ?></p>
+                            <p class="card-text">
+                                Availability: 
+                                <?php echo htmlspecialchars($row['status']); ?>
+                            </p>
+                            <div class="text-center">
+                                <button class="btn btn-sm btn-outline-dark view_prod btn-block" data-id="<?php echo htmlspecialchars($row['id']); ?>"><i class="fa fa-eye"></i> View</button>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <?php endwhile; ?>
+                <?php endwhile; ?>
+            <?php else: ?>
+                <div class="col-12 text-center">
+                    <h3>No products found</h3>
+                </div>
+            <?php endif; ?>
         </div>
         <!-- Pagination Buttons Block -->
         <div class="w-100 mx-4 d-flex justify-content-center">
             <div class="btn-group paginate-btns">
                 <!-- Previous Page Button -->
-                <a class="btn btn-default border border-dark" <?php echo ($page == 0) ? 'disabled' : ''; ?> href="./?_page=<?php echo ($page); ?>">Prev.</a>
+                <a class="btn btn-default border border-dark" <?php echo ($page == 0) ? 'disabled' : ''; ?> href="./?_page=<?php echo ($page); ?>&search=<?php echo urlencode($search); ?>">Prev.</a>
                 <!-- End of Previous Page Button -->
                 <!-- Pages Page Button -->
                 <?php for ($i = 1; $i <= $page_btn_count; $i++): ?>
@@ -78,17 +107,17 @@
                             <a class="btn btn-default border border-dark ellipsis">...</a>
                         <?php endif; ?>
                         <?php if ($i == 1 || $i == $page_btn_count || in_array($i, range(($page - 3), ($page + 3)))): ?>
-                            <a class="btn btn-default border border-dark <?php echo ($i == ($page + 1)) ? 'active' : ''; ?>" href="./?_page=<?php echo $i ?>"><?php echo $i; ?></a>
+                            <a class="btn btn-default border border-dark <?php echo ($i == ($page + 1)) ? 'active' : ''; ?>" href="./?_page=<?php echo $i ?>&search=<?php echo urlencode($search); ?>"><?php echo $i; ?></a>
                             <?php if ($i == 1 && !in_array($i, range(($page - 3), ($page + 3)))): ?>
                                 <a class="btn btn-default border border-dark ellipsis">...</a>
                             <?php endif; ?>
                         <?php endif; ?>
                     <?php else: ?>
-                        <a class="btn btn-default border border-dark <?php echo ($i == ($page + 1)) ? 'active' : ''; ?>" href="./?_page=<?php echo $i ?>"><?php echo $i; ?></a>
+                        <a class="btn btn-default border border-dark <?php echo ($i == ($page + 1)) ? 'active' : ''; ?>" href="./?_page=<?php echo $i ?>&search=<?php echo urlencode($search); ?>"><?php echo $i; ?></a>
                     <?php endif; ?>
                 <?php endfor; ?>
                 <!-- Next Page Button -->
-                <a class="btn btn-default border border-dark" <?php echo (($page + 1) == $page_btn_count) ? 'disabled' : ''; ?> href="./?_page=<?php echo ($page + 2); ?>">Next</a>
+                <a class="btn btn-default border border-dark" <?php echo (($page + 1) == $page_btn_count) ? 'disabled' : ''; ?> href="./?_page=<?php echo ($page + 2); ?>&search=<?php echo urlencode($search); ?>">Next</a>
             </div>
         </div>
         <!-- End Pagination Buttons Block -->
