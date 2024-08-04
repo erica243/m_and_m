@@ -96,23 +96,6 @@ CREATE TABLE `orders` (
 
 INSERT INTO `orders` (`id`, `order_number`, `order_date`, `name`, `address`, `mobile`, `email`, `status`, `delivery_method`, `transaction_id`, `payment_method`, `created_at`, `shipping`, `pickup_date`, `pickup_time`) VALUES
 (1, 5932, '2024-07-24 19:27:07', 'Erica Adlit', 'tarong madridejos cebu', '0915825964', 'erica204chavez@gmail.com', 1, 'delivery', 0, 'cash', '2024-07-25 07:00:35', 0, '0000-00-00', '00:00:00'),
-(2, 9001, '2024-07-24 19:32:26', 'Erica Adlit', 'tarong madridejos cebu', '0915825964', 'erica204chavez@gmail.com', 1, 'delivery', 0, 'cash', '2024-07-25 07:00:35', 0, '0000-00-00', '00:00:00'),
-(3, 6169, '2024-07-25 06:39:32', 'Erica Adlit', 'tarong madridejos cebu', '0915825964', 'erica204chavez@gmail.com', 1, 'delivery', 0, 'cash', '2024-07-25 07:00:35', 0, '0000-00-00', '00:00:00'),
-(4, 3060, '2024-07-25 06:41:46', 'Happy Meal', 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaa', '0915825964', 'ducaykristel@gmail.com', 1, 'delivery', 0, 'gcash', '2024-07-25 07:00:35', 0, '0000-00-00', '00:00:00'),
-(5, 2054, '2024-07-25 07:02:44', 'Happy Meal', 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaa', '0915825964', 'ducaykristel@gmail.com', 1, 'delivery', 0, 'gcash', '2024-07-25 07:03:49', 0, '0000-00-00', '00:00:00'),
-(6, 3205, '2024-07-25 07:03:13', 'Happy Meal', 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaa', '0915825964', 'ducaykristel@gmail.com', 1, 'delivery', 0, 'cash', '2024-07-25 07:03:56', 0, '0000-00-00', '00:00:00'),
-(7, 3458, '2024-07-25 07:03:39', 'Happy Meal', 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaa', '0915825964', 'ducaykristel@gmail.com', 1, 'delivery', 0, 'cash', '2024-07-25 07:05:04', 0, '0000-00-00', '00:00:00'),
-(8, 8019, '2024-07-25 07:37:04', 'Happy Meal', 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaa', '0915825964', 'ducaykristel@gmail.com', 1, 'delivery', 0, 'cash', '2024-07-25 08:16:13', 0, '0000-00-00', '00:00:00'),
-(9, 4500, '2024-07-25 08:15:50', 'Happy Meal', 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaa', '0915825964', 'ducaykristel@gmail.com', 1, 'delivery', 0, 'cash', '2024-07-25 08:28:15', 0, '0000-00-00', '00:00:00'),
-(10, 1556, '2024-07-25 08:36:42', 'Erica Adlit', 'tarong madridejos cebu', '0915825964', 'erica204chavez@gmail.com', 1, 'delivery', 0, 'cash', '2024-07-25 08:37:17', 0, '0000-00-00', '00:00:00'),
-(12, 9725, '2024-07-25 11:04:43', 'Salve De Mesa', 'tarong madridejos cebu', '0915825964', 'erica204chavez@gmail.com', 1, 'delivery', 0, 'gcash', '2024-07-25 15:30:32', 0, '0000-00-00', '00:00:00'),
-(13, 1506, '2024-07-25 13:55:28', 'Salve De Mesa', 'tarong madridejos cebu', '0915825964', 'erica204chavez@gmail.com', 1, 'pickup', 0, 'cash', '2024-07-25 21:07:47', 0, '2024-07-31', '21:57:00'),
-(14, 1225, '2024-07-25 15:48:45', 'Salve De Mesa', 'tarong madridejos cebu', '0915825964', 'erica204chavez@gmail.com', 0, 'delivery', 0, 'cash', '2024-07-25 21:48:45', 0, '0000-00-00', '00:00:00'),
-(15, 5804, '2024-07-25 21:07:27', 'Salve De Mesa', 'tarong madridejos cebu', '0915825964', 'erica204chavez@gmail.com', 0, 'delivery', 0, 'gcash', '2024-07-26 03:07:27', 0, '0000-00-00', '00:00:00'),
-(16, 3429, '2024-07-25 21:38:56', 'Salve De Mesa', 'tarong madridejos cebu', '0915825964', 'erica204chavez@gmail.com', 1, 'Delivery', 0, 'gcash', '2024-07-26 08:25:55', 0, '0000-00-00', '00:00:00'),
-(17, 4696, '2024-07-26 03:46:03', 'erica adlit', 'malbago', '9815825964', 'eica204@chavezgmail.com', 0, 'pickup', 0, 'gcash', '2024-07-26 09:46:03', 0, '2024-07-26', '00:48:00'),
-(18, 8866, '2024-07-26 08:27:52', 'Salve De Mesa', 'tarong madridejos cebu', '0915825964', 'erica204chavez@gmail.com', 1, 'delivery', 0, 'gcash', '2024-07-26 08:28:11', 0, '0000-00-00', '00:00:00'),
-(19, 4210, '2024-07-26 08:31:53', 'Salve De Mesa', 'tarong madridejos cebu', '0915825964', 'erica204chavez@gmail.com', 0, 'delivery', 0, 'gcash', '2024-07-26 14:31:53', 0, '0000-00-00', '00:00:00');
 
 -- --------------------------------------------------------
 
