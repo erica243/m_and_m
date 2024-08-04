@@ -68,15 +68,20 @@ $result = $conn->query($query);
         <h2>No confirmed orders found</h2>
     <?php endif; ?>
 </div>
+</div>
+</div></div>
+</div></div>
+</div></div>
+</div>
+</div>
+</div></div>
+</div></div>
+</div></div>
+</div>
 
 <?php
 $conn->close();
 ?>
-</div>
-</div></div>
-</div></div>
-</div></div>
-</div>
 </div>
 </div></div>
 </div></div>
