@@ -23,6 +23,21 @@ $query .= " ORDER BY o.order_date DESC";
 $result = $conn->query($query);
 ?>
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Reports</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <style>
+        body { font-family: Arial, sans-serif; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #000; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2>Order Reports</h2>
@@ -68,30 +83,10 @@ $result = $conn->query($query);
         <h2>No confirmed orders found</h2>
     <?php endif; ?>
 </div>
-</div>
-</div></div>
-</div></div>
-</div></div>
-</div>
-</div>
-</div></div>
-</div></div>
-</div></div>
-</div>
 
 <?php
 $conn->close();
 ?>
-</div>
-</div></div>
-</div></div>
-</div></div>
-</div>
-</div>
-</div></div>
-</div></div>
-</div></div>
-</div>
 
 <script>
 function printReport() {
