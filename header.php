@@ -21,7 +21,7 @@ function test_cypher_decrypt($encryption){
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
         <meta name="description" content="" />
         <meta name="author" content="" />
-        <title><?php echo $_SESSION['name'] ?></title>
+        <title>M&M CAKE ORDERING SYSTEM</title>
         <!-- Favicon-->
         <link rel="icon" type="image/x-icon" href="assets/img/favicon.ico" />
         <!-- Font Awesome icons (free version)-->
