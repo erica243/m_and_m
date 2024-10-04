@@ -39,7 +39,7 @@ $page_btn_count = ceil($all_menu / $limit);
             <div class="row h-100 align-items-center justify-content-center text-center">
             <div class="col-lg-10 align-self-center mb-4 page-title">
             <h1 class="text-white">
-    Welcome to <?php echo htmlspecialchars(isset($_SESSION['setting_name']) ? $_SESSION['setting_name'] : 'M&M Cake Ordering System'); ?>
+    Welcome to <?php echo htmlspecialchars(isset($_SESSION['setting_name']) ? $_SESSION['setting_name'] : 'M&M Cake  Ordering System'); ?>
 </h1>
 
     <hr class="divider my-4 bg-dark" />

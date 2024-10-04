@@ -351,22 +351,25 @@ Class Action {
         }
     }
     // Inside admin_class.php
-
-public function submit_rating() {
-    $product_id = $_POST['product_id'];
-    $rating = $_POST['rating'];
-    $feedback = $_POST['feedback'];
-
-    // Insert rating into database
-    $sql = "INSERT INTO product_ratings (product_id, rating, feedback) 
-            VALUES ('$product_id', '$rating', '$feedback')";
+    public function update_delivery_status($order_id, $new_status) {
+        // Escape inputs
+        $order_id = $this->db->real_escape_string($order_id);
+        $new_status = $this->db->real_escape_string($new_status);
     
-    if ($this->conn->query($sql) === TRUE) {
-        return 1; // Successfully inserted
-    } else {
-        return 0; // Error inserting
+        // Prepare SQL query to update the delivery status
+        $sql = "UPDATE orders SET delivery_status = '$new_status' WHERE id = '$order_id'";
+    
+        // Log the SQL query for debugging
+        error_log("SQL Query: " . $sql); // Log the query
+    
+        // Execute the query
+        $update = $this->db->query($sql);
+        if (!$update) {
+            return "Error updating delivery status: " . $this->db->error; // Return error if the query fails
+        }
+    
+        return "Delivery status updated successfully."; // Return success message
     }
-}
-
-}
-?>
+    }
+    ?>
+    
