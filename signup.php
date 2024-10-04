@@ -1,14 +1,51 @@
 <?php session_start() ?>
+<?php
+        // Check if the form was submitted
+        if ($_SERVER["REQUEST_METHOD"] == "POST") {
+            $first_name = $_POST['first_name'];
+
+            // Sanitize input to remove any HTML or script tags
+            $first_name_sanitized = htmlspecialchars($first_name, ENT_QUOTES, 'UTF-8');
+
+            // Validate the input: allow letters, hyphens, apostrophes, and spaces, but block < or >
+            if (!preg_match("/^[A-Za-z\s'-]+$/", $first_name)) {
+                echo '<div class="alert alert-danger">Invalid input: Please enter a valid name (letters, hyphens, apostrophes, and spaces only).</div>';
+            } else if ($first_name !== $first_name_sanitized) {
+                echo '<div class="alert alert-danger">Invalid input: HTML or script tags are not allowed.</div>';
+            } else {
+                // If valid, display success message
+                echo '<div class="alert alert-success">Input is valid. Form submitted successfully!</div>';
+                // Here, you can proceed with storing or processing the sanitized input.
+            }
+
+            $last_name = $_POST['last_name'];
+
+            // Sanitize input to remove any HTML or script tags
+            $last_name_sanitized = htmlspecialchars($last_name, ENT_QUOTES, 'UTF-8');
+
+            // Validate the input: allow letters, hyphens, apostrophes, and spaces, but block < or >
+            if (!preg_match("/^[A-Za-z\s'-]+$/", $last_name)) {
+                echo '<div class="alert alert-danger">Invalid input: Please enter a valid name (letters, hyphens, apostrophes, and spaces only).</div>';
+            } else if ($last_name !== $last_name_sanitized) {
+                echo '<div class="alert alert-danger">Invalid input: HTML or script tags are not allowed.</div>';
+            } else {
+                // If valid, display success message
+                echo '<div class="alert alert-success">Input is valid. Form submitted successfully!</div>';
+                // Here, you can proceed with storing or processing the sanitized input.
+            }
+        }
+        ?>
 <div class="container-fluid">
 	<form action="" id="signup-frm">
 		<div class="form-group">
-			<label for="" class="control-label">Firstname</label>
-			<input type="text" name="first_name" required="" class="form-control">
+         <label for="first_name">First Name</label>
+         <input type="text" class="form-control" id="fname" name="first_name" placeholder="Enter Firstname" required oninput="validateInput()" pattern="[A-Za-z\s'-]+">
+                     
 		</div>
 		<div class="form-group">
-			<label for="" class="control-label">Lastname</label>
-			<input type="text" name="last_name" required="" class="form-control">
-		</div>
+			<label for="last_name" class="control-label">Lastname</label>
+            <input type="text" class="form-control" id="lname" name="last_name" placeholder="Enter Lastname" required oninput="validateInputs()" pattern="[A-Za-z\s'-]+">
+            </div>
 		<div class="form-group">
 			<label for="" class="control-label">Contact</label>
 			<input type="text" name="mobile" required="" class="form-control" maxlength="11">

@@ -44,7 +44,36 @@ function test_cypher_decrypt($encryption){
         </style>
         <script src="admin/assets/vendor/jquery/jquery.min.js"></script>
         <script src="admin/assets/vendor/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+        <script>
+        // JavaScript function to prevent script tags and allow certain symbols
+        function validateInput() {
+            var nameField = document.getElementById('fname');
+            var value = nameField.value;
 
+            // Regular expression to allow letters, hyphens, apostrophes, and spaces, but no < or > (to prevent script tags)
+            var regex = /^[A-Za-z\s'-]+$/;
+
+            if (!regex.test(value)) {
+                nameField.setCustomValidity("Please enter a valid name (letters, hyphens, apostrophes, and spaces allowed). No < or > symbols.");
+            } else {
+                nameField.setCustomValidity("");
+            }
+        }
+
+        function validateInputs() {
+            var nameField = document.getElementById('lname');
+            var value = nameField.value;
+
+            // Regular expression to allow letters, hyphens, apostrophes, and spaces, but no < or > (to prevent script tags)
+            var regex = /^[A-Za-z\s'-]+$/;
+
+            if (!regex.test(value)) {
+                nameField.setCustomValidity("Please enter a valid lastname (letters, hyphens, apostrophes, and spaces allowed). No < or > symbols.");
+            } else {
+                nameField.setCustomValidity("");
+            }
+        }
+    </script>
 
 <!-- SweetAlert2 CSS -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.5/dist/sweetalert2.min.css">
