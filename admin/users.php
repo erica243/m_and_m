@@ -39,7 +39,7 @@ include('db_connect.php');
                         ?>
                         <tr>
                             <td><?php echo $i++ ?></td>
-                            <td><?php echo $htmlspecialchars $row['first_name'] ?></td>
+                            <td><?php echo  $row['first_name'] ?></td>
                             <td><?php echo $row['last_name'] ?></td>
                             <td><?php echo $row['email'] ?></td>
                             <td><?php echo  $row['mobile'] ?></td>
