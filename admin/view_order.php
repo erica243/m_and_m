@@ -45,6 +45,20 @@ $stmt = $conn->prepare("SELECT o.qty, p.name, p.description, p.price,
 $stmt->bind_param("i", $orderId);
 $stmt->execute();
 $orderItems = $stmt->get_result();
+
+// Fetch shipping information based on the order's address
+$address = $order['address']; // Get the address from the order
+$shippingStmt = $conn->prepare("SELECT shipping_amount FROM shipping_info WHERE address = ?");
+$shippingStmt->bind_param("s", $address);
+$shippingStmt->execute();
+$shippingResult = $shippingStmt->get_result();
+$shippingAmount = $shippingResult->fetch_assoc()['shipping_amount'] ?? 0;
+
+// Fetch unique user addresses for shipping
+$addressesStmt = $conn->prepare("SELECT * FROM user_info WHERE user_id = ?");
+$addressesStmt->bind_param("i", $order['user_id']);
+$addressesStmt->execute();
+$addresses = $addressesStmt->get_result();
 ?>
 
 <div class="container-fluid mt-4">
@@ -88,8 +102,16 @@ $orderItems = $stmt->get_result();
         </tbody>
         <tfoot>
             <tr>
-                <th colspan="10" class="text-right">TOTAL</th>
+                <th colspan="10" class="text-right">Subtotal</th>
                 <th><?php echo number_format($total, 2); ?></th>
+            </tr>
+            <tr>
+                <th colspan="10" class="text-right">Shipping Amount</th>
+                <th><?php echo number_format($shippingAmount, 2); ?></th>
+            </tr>
+            <tr>
+                <th colspan="10" class="text-right">TOTAL</th>
+                <th><?php echo number_format($total + $shippingAmount, 2); ?></th>
             </tr>
         </tfoot>
     </table>
@@ -98,12 +120,13 @@ $orderItems = $stmt->get_result();
         <button class="btn btn-primary" id="confirm" type="button" onclick="confirm_order()" <?php echo $orderStatus == 1 ? 'disabled' : '' ?>>Confirm</button>
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
         <button class="btn btn-success" type="button" onclick="print_receipt()">Print Receipt</button>
-        <button class="btn btn-danger" type="button" onclick="delete_order()">Delete Order</button> <!-- Delete Button -->
+        <button class="btn btn-danger" type="button" id="delete_order" onclick="delete_order()">Delete Order</button>
     </div>
 </div>
 
 <script>
     function confirm_order() {
+        // Existing code for confirming the order
         Swal.fire({
             title: 'Confirm Order',
             text: 'Are you sure you want to confirm this order?',
@@ -121,43 +144,69 @@ $orderItems = $stmt->get_result();
                     data: { id: '<?php echo $_GET['id'] ?>' },
                     success: function(resp) {
                         if (resp == 1) {
-                            Swal.fire(
-                                'Confirmed!',
-                                'Order has been successfully confirmed.',
-                                'success'
-                            ).then(function() {
+                            Swal.fire('Confirmed!', 'Order has been successfully confirmed.', 'success').then(function() {
                                 location.reload();
                             });
                         } else {
-                            Swal.fire(
-                                'Error!',
-                                'Error confirming order: ' + resp,
-                                'error'
-                            );
+                            Swal.fire('Error!', 'Error confirming order: ' + resp, 'error');
                         }
                         end_load();
                     },
                     error: function() {
                         end_load();
-                        Swal.fire(
-                            'Error!',
-                            'AJAX request failed.',
-                            'error'
-                        );
+                        Swal.fire('Error!', 'AJAX request failed.', 'error');
                     }
                 });
             }
         });
     }
 
+    function print_receipt() {
+        // Existing code for printing the receipt
+        var receiptWindow = window.open('', '', 'height=600,width=800,location=no');
+        var logoUrl = 'assets/img/logo.jpg'; // Full URL
+
+        var orderNumber = '<?php echo $order["order_number"]; ?>';
+        var orderDate = '<?php echo $formatted_order_date; ?>';
+        var customerName = '<?php echo $order["name"]; ?>';
+        var address = '<?php echo $order["address"]; ?>';
+        var deliveryMethod = '<?php echo $order["delivery_method"]; ?>';
+        var paymentMethod = '<?php echo $order["payment_method"]; ?>';
+        var totalAmount = '<?php echo number_format($total + $shippingAmount, 2); ?>'; // Total with shipping
+
+        var headerContent = '<div style="text-align: center; margin-bottom: 20px;">' +
+            '<img src="' + logoUrl + '" alt="Logo" style="max-width: 150px;"/>' +
+            '<h3>M&M Cake Ordering</h3>' +
+            '</div>';
+        
+        var orderDetailsContent = '<table style="width: 100%; border-collapse: collapse;">' +
+            '<tr><th>Order Number:</th><td>' + orderNumber + '</td></tr>' +
+            '<tr><th>Order Date:</th><td>' + orderDate + '</td></tr>' +
+            '<tr><th>Customer Name:</th><td>' + customerName + '</td></tr>' +
+            '<tr><th>Address:</th><td>' + address + '</td></tr>' +
+            '<tr><th>Delivery Method:</th><td>' + deliveryMethod + '</td></tr>' +
+            '<tr><th>Payment Method:</th><td>' + paymentMethod + '</td></tr>' +
+            '<tr><th>Total Amount:</th><td>' + totalAmount + '</td></tr>' +
+            '</table>';
+        
+        receiptWindow.document.write('<html><head><title>Receipt</title>');
+        receiptWindow.document.write('</head><body>');
+        receiptWindow.document.write(headerContent);
+        receiptWindow.document.write(orderDetailsContent);
+        receiptWindow.document.write('</body></html>');
+        receiptWindow.document.close();
+        receiptWindow.print();
+    }
+
     function delete_order() {
+        // Existing code for deleting the order
         Swal.fire({
             title: 'Delete Order',
             text: 'Are you sure you want to delete this order?',
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
             confirmButtonText: 'Yes, delete it!'
         }).then((result) => {
             if (result.isConfirmed) {
@@ -168,95 +217,21 @@ $orderItems = $stmt->get_result();
                     data: { id: '<?php echo $_GET['id'] ?>' },
                     success: function(resp) {
                         if (resp == 1) {
-                            Swal.fire(
-                                'Deleted!',
-                                'Order has been successfully deleted.',
-                                'success'
-                            ).then(function() {
-                                window.location.href = 'orders.php'; // Redirect to the orders list page
+                            Swal.fire('Deleted!', 'Order has been deleted.', 'success').then(function() {
+                                location.reload();
                             });
                         } else {
-                            Swal.fire(
-                                'Error!',
-                                'Error deleting order: ' + resp,
-                                'error'
-                            );
+                            Swal.fire('Error!', 'Error deleting order: ' + resp, 'error');
                         }
                         end_load();
                     },
                     error: function() {
                         end_load();
-                        Swal.fire(
-                            'Error!',
-                            'AJAX request failed.',
-                            'error'
-                        );
+                        Swal.fire('Error!', 'AJAX request failed.', 'error');
                     }
                 });
             }
         });
-    }
-
-    function print_receipt() {
-        var receiptWindow = window.open('', '', 'height=600,width=800,location=no');
-        var logoUrl = 'assets/img/logo.jpg'; // Full URL
-
-        var orderNumber = '<?php echo $order["order_number"]; ?>';
-        var orderDate = '<?php echo $formatted_order_date; ?>'; // Use formatted date
-        var customerName = '<?php echo $order["name"]; ?>';
-        var address = '<?php echo $order["address"]; ?>';
-        var deliveryMethod = '<?php echo $order["delivery_method"]; ?>';
-        var paymentMethod = '<?php echo $order["payment_method"]; ?>';
-        var totalAmount = '<?php echo number_format($total, 2); ?>';
-
-        var headerContent = '<div style="text-align: center; margin-bottom: 20px;">' +
-            '<img src="' + logoUrl + '" alt="Logo">' +
-            '<h2>M&M Cake Ordering System</h2>' +
-            '<p>Poblacion Madridejos, Cebu</p>' +
-            '<p>erica204chavez@gmail.com</p>' +
-            '</div>';
-
-        var tableContent = '<table><thead><tr>' +
-            '<th>Product</th>' +
-            '<th>Description</th>' +
-            '<th>Qty</th>' +
-            '<th>Price</th>' +
-            '<th>Amount</th>' +
-            '</tr></thead><tbody>';
-
-        <?php
-        $stmt->execute();
-        $orderItems = $stmt->get_result();
-        while ($row = $orderItems->fetch_assoc()):
-        ?>
-        tableContent += '<tr>' +
-            '<td><?php echo $row["name"]; ?></td>' +
-            '<td><?php echo $row["description"]; ?></td>' +
-            '<td><?php echo $row["qty"]; ?></td>' +
-            '<td><?php echo number_format($row["price"], 2); ?></td>' +
-            '<td><?php echo number_format($row["amount"], 2); ?></td>' +
-            '</tr>';
-        <?php endwhile; ?>
-        tableContent += '</tbody><tfoot><tr>' +
-            '<th colspan="4" style="text-align: right;">TOTAL</th>' +
-            '<th><?php echo number_format($total, 2); ?></th>' +
-            '</tr></tfoot></table>';
-
-        var receiptHTML = headerContent + 
-            '<h3>Order Details</h3>' +
-            '<p>Order Number: ' + orderNumber + '</p>' +
-            '<p>Order Date: ' + orderDate + '</p>' +
-            '<p>Customer Name: ' + customerName + '</p>' +
-            '<p>Address: ' + address + '</p>' +
-            '<p>Delivery Method: ' + deliveryMethod + '</p>' +
-            '<p>Mode of Payment: ' + paymentMethod + '</p>' +
-            tableContent;
-
-        receiptWindow.document.write('<html><head><title>Receipt</title></head><body>');
-        receiptWindow.document.write(receiptHTML);
-        receiptWindow.document.write('</body></html>');
-        receiptWindow.document.close();
-        receiptWindow.print();
     }
 </script>
 </body>

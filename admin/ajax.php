@@ -94,6 +94,25 @@ if ($action == "cancel_order") {
     if ($cancel) echo $cancel;
 }
 
+if ($action == 'delete_order') {
+    include 'db_connect.php';
+    $orderId = $_POST['id']; // Get the order ID from POST
+
+    // Use prepared statements for security
+    $stmt = $conn->prepare("DELETE FROM orders WHERE id = ?");
+    $stmt->bind_param("i", $orderId);
+
+    if ($stmt->execute()) {
+        echo 1; // Success
+    } else {
+        echo $conn->error; // Return the error message for debugging
+    }
+
+    $stmt->close();
+    $conn->close();
+    exit();
+}
+
 // Handle delete_user action
 if ($action == 'delete_user') {
     if (isset($_POST['id'])) {
