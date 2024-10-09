@@ -371,5 +371,14 @@ Class Action {
         return "Delivery status updated successfully."; // Return success message
     }
     }
+    function delete_order() {
+        global $conn;
+        $orderId = $_POST['id'];
+        if (isset($orderId)) {
+            $qry = $conn->query("DELETE FROM orders WHERE id = '$orderId'");
+            return $qry ? 1 : 0; // Return 1 on success, 0 on failure
+        }
+        return 0; // In case id is not set
+    }
     ?>
     
