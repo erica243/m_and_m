@@ -271,9 +271,9 @@ Class Action {
         $pickup_date = isset($_POST['pickup_date']) && !empty($_POST['pickup_date']) ? $this->db->real_escape_string($_POST['pickup_date']) : 'N/A';
         $pickup_time = isset($_POST['pickup_time']) && !empty($_POST['pickup_time']) ? $this->db->real_escape_string($_POST['pickup_time']) : 'N/A';
     
-        // Handle payment proof upload if required for G-Cash
+        // Handle payment proof upload
         $payment_proof_path = '';
-        if ($payment_method === 'gcash' && isset($_FILES['payment_proof']) && $_FILES['payment_proof']['error'] == UPLOAD_ERR_OK) {
+        if (isset($_FILES['payment_proof']) && $_FILES['payment_proof']['error'] == UPLOAD_ERR_OK) {
             $upload_dir = 'uploads/payment_proof/';
             if (!is_dir($upload_dir)) {
                 mkdir($upload_dir, 0777, true);
@@ -294,7 +294,7 @@ Class Action {
         $sql = "INSERT INTO orders (order_number, order_date, delivery_method, name, address, mobile, email, payment_method, transaction_id, pickup_date, pickup_time, payment_proof) 
                 VALUES ('$order_number', '$order_date', '$delivery_method', '$first_name $last_name', '$address', '$mobile', '$email', '$payment_method', '$transaction_id', 
                 '$pickup_date', '$pickup_time', '$payment_proof_path')";
-    
+        
         // Execute query
         $save = $this->db->query($sql);
         if (!$save) {
@@ -320,6 +320,8 @@ Class Action {
     
         return 1; // Indicate success
     }
+    
+    
     
     function confirm_order() {
         extract($_POST);
@@ -378,6 +380,5 @@ Class Action {
         }
         return 0; // In case id is not set
     }
-    
     ?>
     

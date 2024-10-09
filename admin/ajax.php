@@ -1,18 +1,9 @@
 <?php
 ob_start();
+$action = $_GET['action'];
 include 'admin_class.php';
 $crud = new Action();
 
-// Check if 'action' exists in either GET or POST
-if (isset($_GET['action'])) {
-    $action = $_GET['action'];
-} elseif (isset($_POST['action'])) {
-    $action = $_POST['action'];
-} else {
-    // Handle missing action case
-    echo "Error: Action not specified.";
-    exit();
-}
 if ($action == 'login') {
     $login = $crud->login();
     if ($login) echo $login;
@@ -121,7 +112,6 @@ if ($action == 'delete_order') {
     $conn->close();
     exit();
 }
-
 
 // Handle delete_user action
 if ($action == 'delete_user') {
