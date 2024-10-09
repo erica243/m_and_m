@@ -45,20 +45,7 @@ $stmt = $conn->prepare("SELECT o.qty, p.name, p.description, p.price,
 $stmt->bind_param("i", $orderId);
 $stmt->execute();
 $orderItems = $stmt->get_result();
-
-// Fetch shipping information based on the order's address
-$address = $order['address']; // Get the address from the order
-$shippingStmt = $conn->prepare("SELECT shipping_amount FROM shipping_info WHERE address = ?");
-$shippingStmt->bind_param("s", $address);
-$shippingStmt->execute();
-$shippingResult = $shippingStmt->get_result();
-$shippingAmount = $shippingResult->fetch_assoc()['shipping_amount'] ?? 0;
-
-// Fetch unique user addresses for shipping
-$addressesStmt = $conn->prepare("SELECT * FROM user_info WHERE user_id = ?");
-$addressesStmt->bind_param("i", $order['user_id']);
-$addressesStmt->execute();
-$addresses = $addressesStmt->get_result();
+;
 ?>
 
 <div class="container-fluid mt-4">
