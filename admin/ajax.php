@@ -122,7 +122,10 @@ if ($action == 'delete_order') {
     exit();
 }
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> c58447c6c21b25d029365c30c287ce2cb1a6eae5
 // Handle delete_user action
 if ($action == 'delete_user') {
     if (isset($_POST['id'])) {
