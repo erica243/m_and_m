@@ -45,20 +45,7 @@ $stmt = $conn->prepare("SELECT o.qty, p.name, p.description, p.price,
 $stmt->bind_param("i", $orderId);
 $stmt->execute();
 $orderItems = $stmt->get_result();
-
-// Fetch shipping information based on the order's address
-$address = $order['address']; // Get the address from the order
-$shippingStmt = $conn->prepare("SELECT shipping_amount FROM shipping_info WHERE address = ?");
-$shippingStmt->bind_param("s", $address);
-$shippingStmt->execute();
-$shippingResult = $shippingStmt->get_result();
-$shippingAmount = $shippingResult->fetch_assoc()['shipping_amount'] ?? 0;
-
-// Fetch unique user addresses for shipping
-$addressesStmt = $conn->prepare("SELECT * FROM user_info WHERE user_id = ?");
-$addressesStmt->bind_param("i", $order['user_id']);
-$addressesStmt->execute();
-$addresses = $addressesStmt->get_result();
+;
 ?>
 
 <div class="container-fluid mt-4">
@@ -117,30 +104,11 @@ $addresses = $addressesStmt->get_result();
     </table>
     
     <div class="text-center mt-4">
-<<<<<<< HEAD
-    <button class="btn btn-primary" id="confirm" type="button" onclick="confirm_order()" <?php echo $orderStatus == 1 ? 'disabled' : '' ?>>Confirm</button>
-    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-    <button class="btn btn-success" type="button" onclick="print_receipt()">Print Receipt</button>
-    <button class="btn btn-danger" type="button" id="delete_order" onclick="delete_order()">Delete Order</button>
-
- 
-    <!-- Delivery Status Dropdown -->
-    <label for="delivery_status" class="mt-3">Update Delivery Status:</label>
-    <select id="delivery_status" class="form-control w-50 mx-auto mt-2" onchange="update_delivery_status()">
-        <option value="pending" <?php echo $deliveryStatus == 'pending' ? 'selected' : ''; ?>>Pending</option>
-        <option value="confirmed" <?php echo $deliveryStatus == 'confirmed' ? 'selected' : ''; ?>>Confirmed</option>
-        <option value="arrived" <?php echo $deliveryStatus == 'arrived' ? 'selected' : ''; ?>>Arrived</option>
-        <option value="delivered" <?php echo $deliveryStatus == 'delivered' ? 'selected' : ''; ?>>Delivered</option>
-        <option value="completed" <?php echo $deliveryStatus == 'completed' ? 'selected' : ''; ?>>Completed</option>
-    </select>
-</div>
-=======
         <button class="btn btn-primary" id="confirm" type="button" onclick="confirm_order()" <?php echo $orderStatus == 1 ? 'disabled' : '' ?>>Confirm</button>
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
         <button class="btn btn-success" type="button" onclick="print_receipt()">Print Receipt</button>
         <button class="btn btn-danger" type="button" id="delete_order" onclick="delete_order()">Delete Order</button>
     </div>
->>>>>>> c58447c6c21b25d029365c30c287ce2cb1a6eae5
 </div>
 
 <script>
@@ -178,82 +146,6 @@ $addresses = $addressesStmt->get_result();
                 });
             }
         });
-    }
-    function update_delivery_status() {
-    var status = $('#delivery_status').val();
-    var orderId = '<?php echo $_GET["id"]; ?>';
-
-    Swal.fire({
-        title: 'Update Delivery Status',
-        text: 'Are you sure you want to update the delivery status?',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Yes, update it!'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            start_load();
-            $.ajax({
-                url: 'ajax.php?action=update_delivery_status',
-                method: 'POST',
-                data: {
-                    id: orderId,
-                    status: status
-                },
-                success: function(resp) {
-                    if (resp == 1) {
-                        Swal.fire('Updated!', 'Delivery status has been updated successfully.', 'success').then(function() {
-                            location.reload();
-                        });
-                    } else {
-                        Swal.fire('Error!', 'Error updating delivery status: ' + resp, 'error');
-                    }
-                    end_load();
-                },
-                error: function() {
-                    end_load();
-                    Swal.fire('Error!', 'AJAX request failed.', 'error');
-                }
-            });
-        }
-    });
-}
-    function print_receipt() {
-        // Existing code for printing the receipt
-        var receiptWindow = window.open('', '', 'height=600,width=800,location=no');
-        var logoUrl = 'assets/img/logo.jpg'; // Full URL
-
-        var orderNumber = '<?php echo $order["order_number"]; ?>';
-        var orderDate = '<?php echo $formatted_order_date; ?>';
-        var customerName = '<?php echo $order["name"]; ?>';
-        var address = '<?php echo $order["address"]; ?>';
-        var deliveryMethod = '<?php echo $order["delivery_method"]; ?>';
-        var paymentMethod = '<?php echo $order["payment_method"]; ?>';
-        var totalAmount = '<?php echo number_format($total + $shippingAmount, 2); ?>'; // Total with shipping
-
-        var headerContent = '<div style="text-align: center; margin-bottom: 20px;">' +
-            '<img src="' + logoUrl + '" alt="Logo" style="max-width: 150px;"/>' +
-            '<h3>M&M Cake Ordering</h3>' +
-            '</div>';
-        
-        var orderDetailsContent = '<table style="width: 100%; border-collapse: collapse;">' +
-            '<tr><th>Order Number:</th><td>' + orderNumber + '</td></tr>' +
-            '<tr><th>Order Date:</th><td>' + orderDate + '</td></tr>' +
-            '<tr><th>Customer Name:</th><td>' + customerName + '</td></tr>' +
-            '<tr><th>Address:</th><td>' + address + '</td></tr>' +
-            '<tr><th>Delivery Method:</th><td>' + deliveryMethod + '</td></tr>' +
-            '<tr><th>Payment Method:</th><td>' + paymentMethod + '</td></tr>' +
-            '<tr><th>Total Amount:</th><td>' + totalAmount + '</td></tr>' +
-            '</table>';
-        
-        receiptWindow.document.write('<html><head><title>Receipt</title>');
-        receiptWindow.document.write('</head><body>');
-        receiptWindow.document.write(headerContent);
-        receiptWindow.document.write(orderDetailsContent);
-        receiptWindow.document.write('</body></html>');
-        receiptWindow.document.close();
-        receiptWindow.print();
     }
 
     function print_receipt() {
