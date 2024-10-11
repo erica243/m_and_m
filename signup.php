@@ -39,12 +39,12 @@
 	<form action="" id="signup-frm">
 		<div class="form-group">
          <label for="first_name">First Name</label>
-         <input type="text" class="form-control" id="fname" name="first_name" placeholder="Enter Firstname" required oninput="validateInput()" pattern="[A-Za-z\s'-]+">
+         <input type="text" class="form-control" id="fname" name="first_name" placeholder="" required oninput="validateInput()" pattern="[A-Za-z\s'-]+">
                      
 		</div>
 		<div class="form-group">
 			<label for="last_name" class="control-label">Lastname</label>
-            <input type="text" class="form-control" id="lname" name="last_name" placeholder="Enter Lastname" required oninput="validateInputs()" pattern="[A-Za-z\s'-]+">
+            <input type="text" class="form-control" id="lname" name="last_name" placeholder="" required oninput="validateInputs()" pattern="[A-Za-z\s'-]+">
             </div>
 		<div class="form-group">
 			<label for="" class="control-label">Contact</label>
