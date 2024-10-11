@@ -52,10 +52,6 @@ if (!function_exists('test_cypher_decrypt')) {
 <!-- Template Main CSS File -->
 <link href="assets/css/style.css" rel="stylesheet">
 <link type="text/css" rel="stylesheet" href="assets/css/jquery-te-1.4.0.css">
-<!-- Fancybox CSS -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@4.0.27/dist/fancybox.min.css">
-<!-- Fancybox JS -->
-<script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@4.0.27/dist/fancybox.umd.js"></script>
 
 <!-- Vendor JS Files -->
 <script src="assets/vendor/jquery/jquery.min.js"></script>
