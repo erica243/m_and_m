@@ -7,7 +7,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $email = '';
     $order_number = '';
     $message = '';
-    $image_path = null;
+    $image_path = null; 
 
     // Check if form fields are set and assign them
     if (isset($_POST['email'])) {

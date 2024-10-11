@@ -1,9 +1,18 @@
 <?php
 ob_start();
-$action = $_GET['action'];
 include 'admin_class.php';
 $crud = new Action();
 
+// Check if 'action' exists in either GET or POST
+if (isset($_GET['action'])) {
+    $action = $_GET['action'];
+} elseif (isset($_POST['action'])) {
+    $action = $_POST['action'];
+} else {
+    // Handle missing action case
+    echo "Error: Action not specified.";
+    exit();
+}
 if ($action == 'login') {
     $login = $crud->login();
     if ($login) echo $login;
@@ -113,6 +122,7 @@ if ($action == 'delete_order') {
     exit();
 }
 
+
 // Handle delete_user action
 if ($action == 'delete_user') {
     if (isset($_POST['id'])) {
@@ -153,4 +163,39 @@ if($action == 'submit_rating'){
 
     $stmt->close();
 }
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_GET['action'] == 'update_delivery_status') {
+    $orderId = $_POST['id'];
+    $status = $_POST['status'];
+
+    // Validate input
+    $allowed_statuses = ['pending', 'confirmed', 'delivered', 'arrived', 'completed'];
+    if (!in_array($status, $allowed_statuses)) {
+        echo json_encode(['success' => false, 'message' => 'Invalid delivery status.']);
+        exit;
+    }
+
+    // Prepare the statement
+    $stmt = $conn->prepare("UPDATE orders SET delivery_status = ? WHERE id = ?");
+    if (!$stmt) {
+        echo json_encode(['success' => false, 'message' => 'Error preparing statement: ' . $conn->error]);
+        exit;
+    }
+
+    // Bind parameters
+    $stmt->bind_param("si", $status, $orderId);
+
+    // Execute the statement
+    if ($stmt->execute()) {
+        // Log successful update
+        error_log("Delivery status updated for order ID $orderId to '$status'.");
+        echo json_encode(['success' => true, 'message' => 'Delivery status updated successfully.']);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Error updating delivery status: ' . $stmt->error]);
+    }
+
+    // Close the statement
+    $stmt->close();
+}
+
+
 ?>

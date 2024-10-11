@@ -9,12 +9,15 @@ if (!isset($_SESSION['login_user_id'])) {
 
 // Fetch orders for the user
 $user_id = $_SESSION['login_user_id'];
-$query = "SELECT o.id, o.order_date, o.delivery_method, o.payment_method, 
+$query = "SELECT o.id, o.order_number, o.order_date, o.delivery_method, o.payment_method, 
                  p.name AS product_name, ol.qty AS quantity, p.price 
           FROM orders o
           JOIN order_list ol ON o.id = ol.order_id
           JOIN product_list p ON ol.product_id = p.id
-          WHERE o.id = ?";
+          JOIN user_info u ON u.email = o.email
+          WHERE u.user_id = ?
+          ORDER BY o.order_date DESC";  // Orders fetched in descending order of date
+
 $stmt = $conn->prepare($query);
 if (!$stmt) {
     die("Prepare failed: " . $conn->error);
@@ -60,6 +63,21 @@ $result = $stmt->get_result();
             background-color: #fff;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Back button styling */
+        .back-btn {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .back-btn:hover {
+            background-color: #0056b3;
         }
 
         /* Table styling */
@@ -134,12 +152,15 @@ $result = $stmt->get_result();
 
     <main>
         <h1>My Orders</h1>
+
+        <!-- Back button -->
+        <button class="back-btn" onclick="window.history.back();">Back</button>
         
         <!-- Display order details -->
         <table>
             <thead>
                 <tr>
-                    <th>Order ID</th>
+                    <th>Order Number</th>
                     <th>Order Date</th>
                     <th>Product Name</th>
                     <th>Quantity</th>
@@ -151,7 +172,7 @@ $result = $stmt->get_result();
             <tbody>
                 <?php while ($row = $result->fetch_assoc()): ?>
                 <tr>
-                    <td><?php echo htmlspecialchars($row['id']); ?></td>
+                    <td><?php echo htmlspecialchars($row['order_number']); ?></td>
                     <td><?php echo htmlspecialchars($row['order_date']); ?></td>
                     <td><?php echo htmlspecialchars($row['product_name']); ?></td>
                     <td><?php echo htmlspecialchars($row['quantity']); ?></td>

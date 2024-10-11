@@ -45,7 +45,20 @@ $stmt = $conn->prepare("SELECT o.qty, p.name, p.description, p.price,
 $stmt->bind_param("i", $orderId);
 $stmt->execute();
 $orderItems = $stmt->get_result();
-;
+
+// Fetch shipping information based on the order's address
+$address = $order['address']; // Get the address from the order
+$shippingStmt = $conn->prepare("SELECT shipping_amount FROM shipping_info WHERE address = ?");
+$shippingStmt->bind_param("s", $address);
+$shippingStmt->execute();
+$shippingResult = $shippingStmt->get_result();
+$shippingAmount = $shippingResult->fetch_assoc()['shipping_amount'] ?? 0;
+
+// Fetch unique user addresses for shipping
+$addressesStmt = $conn->prepare("SELECT * FROM user_info WHERE user_id = ?");
+$addressesStmt->bind_param("i", $order['user_id']);
+$addressesStmt->execute();
+$addresses = $addressesStmt->get_result();
 ?>
 
 <div class="container-fluid mt-4">
@@ -104,11 +117,22 @@ $orderItems = $stmt->get_result();
     </table>
     
     <div class="text-center mt-4">
-        <button class="btn btn-primary" id="confirm" type="button" onclick="confirm_order()" <?php echo $orderStatus == 1 ? 'disabled' : '' ?>>Confirm</button>
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-        <button class="btn btn-success" type="button" onclick="print_receipt()">Print Receipt</button>
-        <button class="btn btn-danger" type="button" id="delete_order" onclick="delete_order()">Delete Order</button>
-    </div>
+    <button class="btn btn-primary" id="confirm" type="button" onclick="confirm_order()" <?php echo $orderStatus == 1 ? 'disabled' : '' ?>>Confirm</button>
+    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+    <button class="btn btn-success" type="button" onclick="print_receipt()">Print Receipt</button>
+    <button class="btn btn-danger" type="button" id="delete_order" onclick="delete_order()">Delete Order</button>
+
+ 
+    <!-- Delivery Status Dropdown -->
+    <label for="delivery_status" class="mt-3">Update Delivery Status:</label>
+    <select id="delivery_status" class="form-control w-50 mx-auto mt-2" onchange="update_delivery_status()">
+        <option value="pending" <?php echo $deliveryStatus == 'pending' ? 'selected' : ''; ?>>Pending</option>
+        <option value="confirmed" <?php echo $deliveryStatus == 'confirmed' ? 'selected' : ''; ?>>Confirmed</option>
+        <option value="arrived" <?php echo $deliveryStatus == 'arrived' ? 'selected' : ''; ?>>Arrived</option>
+        <option value="delivered" <?php echo $deliveryStatus == 'delivered' ? 'selected' : ''; ?>>Delivered</option>
+        <option value="completed" <?php echo $deliveryStatus == 'completed' ? 'selected' : ''; ?>>Completed</option>
+    </select>
+</div>
 </div>
 
 <script>
@@ -147,7 +171,46 @@ $orderItems = $stmt->get_result();
             }
         });
     }
+    function update_delivery_status() {
+    var status = $('#delivery_status').val();
+    var orderId = '<?php echo $_GET["id"]; ?>';
 
+    Swal.fire({
+        title: 'Update Delivery Status',
+        text: 'Are you sure you want to update the delivery status?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, update it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            start_load();
+            $.ajax({
+                url: 'ajax.php?action=update_delivery_status',
+                method: 'POST',
+                data: {
+                    id: orderId,
+                    status: status
+                },
+                success: function(resp) {
+                    if (resp == 1) {
+                        Swal.fire('Updated!', 'Delivery status has been updated successfully.', 'success').then(function() {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire('Error!', 'Error updating delivery status: ' + resp, 'error');
+                    }
+                    end_load();
+                },
+                error: function() {
+                    end_load();
+                    Swal.fire('Error!', 'AJAX request failed.', 'error');
+                }
+            });
+        }
+    });
+}
     function print_receipt() {
         // Existing code for printing the receipt
         var receiptWindow = window.open('', '', 'height=600,width=800,location=no');

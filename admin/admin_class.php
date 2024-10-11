@@ -271,9 +271,9 @@ Class Action {
         $pickup_date = isset($_POST['pickup_date']) && !empty($_POST['pickup_date']) ? $this->db->real_escape_string($_POST['pickup_date']) : 'N/A';
         $pickup_time = isset($_POST['pickup_time']) && !empty($_POST['pickup_time']) ? $this->db->real_escape_string($_POST['pickup_time']) : 'N/A';
     
-        // Handle payment proof upload
+        // Handle payment proof upload if required for G-Cash
         $payment_proof_path = '';
-        if (isset($_FILES['payment_proof']) && $_FILES['payment_proof']['error'] == UPLOAD_ERR_OK) {
+        if ($payment_method === 'gcash' && isset($_FILES['payment_proof']) && $_FILES['payment_proof']['error'] == UPLOAD_ERR_OK) {
             $upload_dir = 'uploads/payment_proof/';
             if (!is_dir($upload_dir)) {
                 mkdir($upload_dir, 0777, true);
@@ -294,7 +294,7 @@ Class Action {
         $sql = "INSERT INTO orders (order_number, order_date, delivery_method, name, address, mobile, email, payment_method, transaction_id, pickup_date, pickup_time, payment_proof) 
                 VALUES ('$order_number', '$order_date', '$delivery_method', '$first_name $last_name', '$address', '$mobile', '$email', '$payment_method', '$transaction_id', 
                 '$pickup_date', '$pickup_time', '$payment_proof_path')";
-        
+    
         // Execute query
         $save = $this->db->query($sql);
         if (!$save) {
@@ -320,8 +320,6 @@ Class Action {
     
         return 1; // Indicate success
     }
-    
-    
     
     function confirm_order() {
         extract($_POST);
@@ -350,27 +348,38 @@ Class Action {
             return 1;
         }
     }
-    // Inside admin_class.php
     public function update_delivery_status($order_id, $new_status) {
-        // Escape inputs
-        $order_id = $this->db->real_escape_string($order_id);
-        $new_status = $this->db->real_escape_string($new_status);
+        // Validate new status
+        $allowed_statuses = ['pending', 'confirmed', 'delivered', 'arrived', 'completed'];
+        if (!in_array($new_status, $allowed_statuses)) {
+            return "Invalid delivery status.";
+        }
     
-        // Prepare SQL query to update the delivery status
-        $sql = "UPDATE orders SET delivery_status = '$new_status' WHERE id = '$order_id'";
+        // Prepare the SQL query
+        $sql = "UPDATE orders SET delivery_status = ? WHERE id = ?";
+        $stmt = $this->db->prepare($sql);
+    
+        if (!$stmt) {
+            return "Error preparing statement: " . $this->db->error;
+        }
+    
+        // Bind parameters
+        $stmt->bind_param('si', $new_status, $order_id);
     
         // Log the SQL query for debugging
         error_log("SQL Query: " . $sql); // Log the query
     
-        // Execute the query
-        $update = $this->db->query($sql);
-        if (!$update) {
-            return "Error updating delivery status: " . $this->db->error; // Return error if the query fails
+        // Execute the statement
+        if (!$stmt->execute()) {
+            return "Error updating delivery status: " . $stmt->error; // Return error if the execution fails
         }
+    
+        // Log successful update
+        error_log("Delivery status updated for order ID $order_id to '$new_status'.");
     
         return "Delivery status updated successfully."; // Return success message
     }
-    }
+}
     function delete_order() {
         global $conn;
         $orderId = $_POST['id'];
@@ -380,5 +389,6 @@ Class Action {
         }
         return 0; // In case id is not set
     }
+    
     ?>
     

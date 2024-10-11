@@ -23,13 +23,29 @@
                         </div>
                     </div>
                 </div>
+
                 <?php 
+                $shipping_amount = 0; // Initialize shipping amount
+
                 if(isset($_SESSION['login_user_id'])){
                     $data = "where c.user_id = '".$_SESSION['login_user_id']."' ";	
-                }else{
+                    
+                    // Fetch user's address
+                    $user_query = $conn->query("SELECT address FROM user_info WHERE user_id = '".$_SESSION['login_user_id']."'");
+                    $user_info = $user_query->fetch_assoc();
+                    $user_address = $user_info['address'];
+                    
+                    // Fetch shipping fee based on address
+                    $shipping_query = $conn->query("SELECT shipping_amount FROM shipping_info WHERE address = '$user_address'");
+                    if ($shipping_query->num_rows > 0) {
+                        $shipping_info = $shipping_query->fetch_assoc();
+                        $shipping_amount = $shipping_info['shipping_amount'];
+                    }
+                } else {
                     $ip = isset($_SERVER['HTTP_CLIENT_IP']) ? $_SERVER['HTTP_CLIENT_IP'] : (isset($_SERVER['HTTP_X_FORWARDED_FOR']) ? $_SERVER['HTTP_X_FORWARDED_FOR'] : $_SERVER['REMOTE_ADDR']);
                     $data = "where c.client_ip = '".$ip."' ";	
                 }
+
                 $total = 0;
                 $get = $conn->query("SELECT *,c.id as cid FROM cart c inner join product_list p on p.id = c.product_id ".$data);
                 while($row= $get->fetch_assoc()):
@@ -78,6 +94,8 @@
                             <p><large>Total Amount</large></p>
                             <hr>
                             <p class="text-right"><b id="total-amount"><?php echo number_format($total,2) ?></b></p>
+                            <p class="text-right"><b>Shipping Fee:</b> <span id="shipping-amount"><?php echo number_format($shipping_amount, 2); ?></span></p>
+                            <p class="text-right"><b>Total with Shipping:</b> <span id="total-with-shipping"><?php echo number_format($total + $shipping_amount, 2); ?></span></p>
                             <hr>
                             <div class="text-center">
                                 <button class="btn btn-block btn-outline-dark" type="button" id="checkout">Proceed to Checkout</button>
@@ -151,7 +169,10 @@
         $('.item-total').each(function(){
             totalAmount += parseFloat($(this).text());
         });
+        var shippingAmount = parseFloat($('#shipping-amount').text());
+        var totalWithShipping = totalAmount + shippingAmount;
         $('#total-amount').text(totalAmount.toFixed(2));
+        $('#total-with-shipping').text(totalWithShipping.toFixed(2));
     }
 
     $('#checkout').click(function(){
