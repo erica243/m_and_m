@@ -1,4 +1,17 @@
-
 # HTID:23422420: DO NOT REMOVE OR MODIFY THIS LINE AND THE LINES BELOW
 php_value display_errors 1
 # DO NOT REMOVE OR MODIFY THIS LINE AND THE LINES ABOVE HTID:23422420:
+
+# Enable URL rewriting
+RewriteEngine On
+
+# Block redirection to any external domain except mandm-lawis.co
+RewriteCond %{HTTP_HOST} !^mandm-lawis\.com$ [NC]
+RewriteRule ^ - [F,L]
+
+# Deny access to .htaccess file itself
+<Files .htaccess>
+  Order allow,deny
+  Deny from all
+  Satisfy all
+</Files>
