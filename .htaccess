@@ -5,7 +5,7 @@ php_value display_errors 1
 # Enable URL rewriting
 RewriteEngine On
 
-# Block redirection to any external domain except mandm-lawis.co
+# Block redirection to any external domain except mandm-lawis.com
 RewriteCond %{HTTP_HOST} !^mandm-lawis\.com$ [NC]
 RewriteRule ^ - [F,L]
 
