@@ -7,10 +7,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_rating'])) {
     $product_id = $_POST['product_id'];
     $rating = $_POST['rating'];
     $feedback = $_POST['feedback'];
-    $user = $_SESSION['user']; // Ensure the user is logged in and their ID is stored in session
+    $user = $_SESSION['user_id']; // Ensure the user is logged in and their ID is stored in session
 
     // Insert rating and feedback into the database
-    $stmt = $conn->prepare("INSERT INTO product_ratings (product_id, user, rating, feedback) VALUES (?, ?, ?, ?)");
+    $stmt = $conn->prepare("INSERT INTO product_ratings (product_id, user_id, rating, feedback) VALUES (?, ?, ?, ?)");
     $stmt->bind_param("iiis", $product_id, $user, $rating, $feedback);
 
     if ($stmt->execute()) {
@@ -33,7 +33,7 @@ $avg_rating = $avg_rating ? number_format($avg_rating, 1) : 'No ratings yet';
 $feedback_qry = $conn->query("
     SELECT pr.rating, pr.feedback, ui.email 
     FROM product_ratings pr
-    JOIN user_info ui ON pr.user = ui.user
+    JOIN user_info ui ON pr.user_id = ui.user_id
     WHERE pr.product_id = $product_id
 ");
 
