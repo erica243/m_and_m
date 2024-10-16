@@ -32,6 +32,7 @@ $stmt->bind_param("i", $orderId);
 $stmt->execute();
 $order = $stmt->get_result()->fetch_assoc();
 $orderStatus = $order['status']; // 1 for confirmed, 0 for not confirmed
+$deliveryStatus = $order['delivery_status']; // Fetch delivery status
 
 // Convert the order date to 'm-d-Y' format
 $formatted_order_date = date("m-d-Y", strtotime($order['order_date']));
@@ -53,12 +54,6 @@ $shippingStmt->bind_param("s", $address);
 $shippingStmt->execute();
 $shippingResult = $shippingStmt->get_result();
 $shippingAmount = $shippingResult->fetch_assoc()['shipping_amount'] ?? 0;
-
-// Fetch unique user addresses for shipping
-$addressesStmt = $conn->prepare("SELECT * FROM user_info WHERE user_id = ?");
-$addressesStmt->bind_param("i", $order['user_id']);
-$addressesStmt->execute();
-$addresses = $addressesStmt->get_result();
 ?>
 
 <div class="container-fluid mt-4">
@@ -117,27 +112,25 @@ $addresses = $addressesStmt->get_result();
     </table>
     
     <div class="text-center mt-4">
-    <button class="btn btn-primary" id="confirm" type="button" onclick="confirm_order()" <?php echo $orderStatus == 1 ? 'disabled' : '' ?>>Confirm</button>
-    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-    <button class="btn btn-success" type="button" onclick="print_receipt()">Print Receipt</button>
-    <button class="btn btn-danger" type="button" id="delete_order" onclick="delete_order()">Delete Order</button>
+        <button class="btn btn-primary" id="confirm" type="button" onclick="confirm_order()" <?php echo $orderStatus == 1 ? 'disabled' : '' ?>>Confirm</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button class="btn btn-success" type="button" onclick="print_receipt()">Print Receipt</button>
+        <button class="btn btn-danger" type="button" id="delete_order" onclick="delete_order()">Delete Order</button>
 
- 
-    <!-- Delivery Status Dropdown -->
-    <label for="delivery_status" class="mt-3">Update Delivery Status:</label>
-    <select id="delivery_status" class="form-control w-50 mx-auto mt-2" onchange="update_delivery_status()">
-        <option value="pending" <?php echo $deliveryStatus == 'pending' ? 'selected' : ''; ?>>Pending</option>
-        <option value="confirmed" <?php echo $deliveryStatus == 'confirmed' ? 'selected' : ''; ?>>Confirmed</option>
-        <option value="arrived" <?php echo $deliveryStatus == 'arrived' ? 'selected' : ''; ?>>Arrived</option>
-        <option value="delivered" <?php echo $deliveryStatus == 'delivered' ? 'selected' : ''; ?>>Delivered</option>
-        <option value="completed" <?php echo $deliveryStatus == 'completed' ? 'selected' : ''; ?>>Completed</option>
-    </select>
-</div>
+        <!-- Delivery Status Dropdown -->
+        <label for="delivery_status" class="mt-3">Update Delivery Status:</label>
+        <select id="delivery_status" class="form-control w-50 mx-auto mt-2" onchange="update_delivery_status()">
+            <option value="pending" <?php echo $deliveryStatus == 'pending' ? 'selected' : ''; ?>>Pending</option>
+            <option value="confirmed" <?php echo $deliveryStatus == 'confirmed' ? 'selected' : ''; ?>>Confirmed</option>
+            <option value="arrived" <?php echo $deliveryStatus == 'arrived' ? 'selected' : ''; ?>>Arrived</option>
+            <option value="delivered" <?php echo $deliveryStatus == 'delivered' ? 'selected' : ''; ?>>Delivered</option>
+            <option value="completed" <?php echo $deliveryStatus == 'completed' ? 'selected' : ''; ?>>Completed</option>
+        </select>
+    </div>
 </div>
 
 <script>
     function confirm_order() {
-        // Existing code for confirming the order
         Swal.fire({
             title: 'Confirm Order',
             text: 'Are you sure you want to confirm this order?',
@@ -171,48 +164,55 @@ $addresses = $addressesStmt->get_result();
             }
         });
     }
+    
     function update_delivery_status() {
-    var status = $('#delivery_status').val();
-    var orderId = '<?php echo $_GET["id"]; ?>';
+        var status = $('#delivery_status').val();
+        var orderId = '<?php echo $_GET["id"]; ?>';
 
-    Swal.fire({
-        title: 'Update Delivery Status',
-        text: 'Are you sure you want to update the delivery status?',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Yes, update it!'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            start_load();
-            $.ajax({
-                url: 'ajax.php?action=update_delivery_status',
-                method: 'POST',
-                data: {
-                    id: orderId,
-                    status: status
-                },
-                success: function(resp) {
-                    if (resp == 1) {
-                        Swal.fire('Updated!', 'Delivery status has been updated successfully.', 'success').then(function() {
-                            location.reload();
-                        });
-                    } else {
-                        Swal.fire('Error!', 'Error updating delivery status: ' + resp, 'error');
+        Swal.fire({
+            title: 'Update Delivery Status',
+            text: 'Are you sure you want to update the delivery status?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, update it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                start_load();
+                $.ajax({
+                    url: 'ajax.php?action=update_delivery_status',
+                    method: 'POST',
+                    data: {
+                        id: orderId,
+                        status: status
+                    },
+                    success: function(resp) {
+                        try {
+                            var jsonResp = JSON.parse(resp); // Parse the JSON response
+
+                            if (jsonResp.success) {
+                                Swal.fire('Updated!', jsonResp.message, 'success').then(function() {
+                                    location.reload();
+                                });
+                            } else {
+                                Swal.fire('Error!', jsonResp.message, 'error');
+                            }
+                        } catch (e) {
+                            Swal.fire('Error!', 'Unexpected response: ' + resp, 'error');
+                        }
+                        end_load();
+                    },
+                    error: function() {
+                        end_load();
+                        Swal.fire('Error!', 'AJAX request failed.', 'error');
                     }
-                    end_load();
-                },
-                error: function() {
-                    end_load();
-                    Swal.fire('Error!', 'AJAX request failed.', 'error');
-                }
-            });
-        }
-    });
-}
+                });
+            }
+        });
+    }
+
     function print_receipt() {
-        // Existing code for printing the receipt
         var receiptWindow = window.open('', '', 'height=600,width=800,location=no');
         var logoUrl = 'assets/img/logo.jpg'; // Full URL
 
@@ -222,34 +222,48 @@ $addresses = $addressesStmt->get_result();
         var address = '<?php echo $order["address"]; ?>';
         var deliveryMethod = '<?php echo $order["delivery_method"]; ?>';
         var paymentMethod = '<?php echo $order["payment_method"]; ?>';
-        var totalAmount = '<?php echo number_format($total + $shippingAmount, 2); ?>'; // Total with shipping
+        var shippingAmount = '<?php echo number_format($shippingAmount, 2); ?>';
 
-        var headerContent = '<div style="text-align: center; margin-bottom: 20px;">' +
-            '<img src="' + logoUrl + '" alt="Logo" style="max-width: 150px;"/>' +
-            '<h3>M&M Cake Ordering</h3>' +
-            '</div>';
-        
-        var orderDetailsContent = '<table style="width: 100%; border-collapse: collapse;">' +
-            '<tr><th>Order Number:</th><td>' + orderNumber + '</td></tr>' +
-            '<tr><th>Order Date:</th><td>' + orderDate + '</td></tr>' +
-            '<tr><th>Customer Name:</th><td>' + customerName + '</td></tr>' +
-            '<tr><th>Address:</th><td>' + address + '</td></tr>' +
-            '<tr><th>Delivery Method:</th><td>' + deliveryMethod + '</td></tr>' +
-            '<tr><th>Payment Method:</th><td>' + paymentMethod + '</td></tr>' +
-            '<tr><th>Total Amount:</th><td>' + totalAmount + '</td></tr>' +
-            '</table>';
-        
+        var total = '<?php echo number_format($total + $shippingAmount, 2); ?>';
+
+        // Add content to the window
         receiptWindow.document.write('<html><head><title>Receipt</title>');
-        receiptWindow.document.write('</head><body>');
-        receiptWindow.document.write(headerContent);
-        receiptWindow.document.write(orderDetailsContent);
+        receiptWindow.document.write('<style>body { font-family: Arial, sans-serif; }</style></head><body>');
+        receiptWindow.document.write('<div style="text-align: center;">');
+        receiptWindow.document.write('<img src="' + logoUrl + '" style="width: 200px;"><br>');
+        receiptWindow.document.write('<h2>Receipt</h2></div>');
+        receiptWindow.document.write('<p>Order Number: ' + orderNumber + '</p>');
+        receiptWindow.document.write('<p>Order Date: ' + orderDate + '</p>');
+        receiptWindow.document.write('<p>Customer Name: ' + customerName + '</p>');
+        receiptWindow.document.write('<p>Address: ' + address + '</p>');
+        receiptWindow.document.write('<p>Delivery Method: ' + deliveryMethod + '</p>');
+        receiptWindow.document.write('<p>Payment Method: ' + paymentMethod + '</p>');
+
+        receiptWindow.document.write('<br><br>');
+        receiptWindow.document.write('<table border="1" style="width: 100%; text-align: left; border-collapse: collapse;">');
+        receiptWindow.document.write('<tr><th>Product</th><th>Description</th><th>Qty</th><th>Price</th><th>Amount</th></tr>');
+
+        <?php 
+        $orderItems->data_seek(0); // Reset pointer for order items
+        while ($row = $orderItems->fetch_assoc()): ?>
+            receiptWindow.document.write('<tr><td><?php echo $row["name"]; ?></td>');
+            receiptWindow.document.write('<td><?php echo $row["description"]; ?></td>');
+            receiptWindow.document.write('<td><?php echo $row["qty"]; ?></td>');
+            receiptWindow.document.write('<td><?php echo number_format($row["price"], 2); ?></td>');
+            receiptWindow.document.write('<td><?php echo number_format($row["amount"], 2); ?></td></tr>');
+        <?php endwhile; ?>
+
+        receiptWindow.document.write('</table>');
+        receiptWindow.document.write('<br><br>');
+        receiptWindow.document.write('<p>Shipping Amount: ' + shippingAmount + '</p>');
+        receiptWindow.document.write('<h3>Total: ' + total + '</h3>');
+
         receiptWindow.document.write('</body></html>');
         receiptWindow.document.close();
         receiptWindow.print();
     }
 
     function delete_order() {
-        // Existing code for deleting the order
         Swal.fire({
             title: 'Delete Order',
             text: 'Are you sure you want to delete this order?',
@@ -267,7 +281,7 @@ $addresses = $addressesStmt->get_result();
                     data: { id: '<?php echo $_GET['id'] ?>' },
                     success: function(resp) {
                         if (resp == 1) {
-                            Swal.fire('Deleted!', 'Order has been deleted.', 'success').then(function() {
+                            Swal.fire('Deleted!', 'Order has been successfully deleted.', 'success').then(function() {
                                 location.reload();
                             });
                         } else {
@@ -283,6 +297,24 @@ $addresses = $addressesStmt->get_result();
             }
         });
     }
+
+    function start_load() {
+        $('body').prepend('<div id="preloader2"></div>');
+    }
+
+    function end_load() {
+        $('#preloader2').fadeOut('fast', function() {
+            $(this).remove();
+        });
+    }
 </script>
+
+<div id="preloader2" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.8); z-index: 9999;">
+    <div class="text-center" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+        <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Loading...</span>
+        </div>
+    </div>
+</div>
 </body>
 </html>

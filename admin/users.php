@@ -39,11 +39,11 @@ include('db_connect.php');
                         ?>
                         <tr>
                             <td><?php echo $i++ ?></td>
-                            <td><?php echo htmlspecialchars($row['first_name']); ?></td>
-                            <td><?php echo htmlspecialchars($row['last_name']); ?></td>
-                            <td><?php echo htmlspecialchars($row['email']); ?></td>
-                            <td><?php echo htmlspecialchars($row['mobile']); ?></td>
-                            <td><?php echo htmlspecialchars($row['address']); ?></td>
+                            <td><?php echo $row['first_name'] ?></td>
+                            <td><?php echo $row['last_name'] ?></td>
+                            <td><?php echo $row['email'] ?></td>
+                            <td><?php echo $row['mobile'] ?></td>
+                            <td><?php echo $row['address'] ?></td>
                             <td class="text-center">
                                 <button class="btn btn-sm btn-info read_user" data-id="<?php echo $row['user_id']; ?>">Read</button>
                                 <button class="btn btn-sm btn-danger delete_user" data-id="<?php echo $row['user_id']; ?>">Delete</button>
@@ -57,7 +57,7 @@ include('db_connect.php');
     </div>
 </div>
 
-<!-- Modal to show user details -->
+<!-- Read User Modal -->
 <div class="modal fade" id="readUserModal" tabindex="-1" aria-labelledby="readUserModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -66,7 +66,7 @@ include('db_connect.php');
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body" id="userDetails">
-                <!-- User details will be dynamically loaded here via AJAX -->
+                <!-- User details will be loaded here -->
             </div>
         </div>
     </div>
@@ -74,24 +74,6 @@ include('db_connect.php');
 
 <script>
     $(document).ready(function() {
-        // Handle user details fetching
-        $('.read_user').on('click', function() {
-            var userId = $(this).data('id');
-            $.ajax({
-                url: 'fetch_user.php',
-                type: 'POST',
-                data: { user_id: userId },
-                success: function(data) {
-                    $('#userDetails').html(data);  // Inject the user details HTML into the modal
-                    $('#readUserModal').modal('show'); // Show the modal
-                },
-                error: function() {
-                    alert('Error fetching user details. Please try again.');
-                }
-            });
-        });
-
-        // Handle user deletion
         $('.delete_user').on('click', function() {
             var userId = $(this).data('id');
             Swal.fire({
@@ -125,6 +107,22 @@ include('db_connect.php');
                             );
                         }
                     });
+                }
+            });
+        });
+
+        $('.read_user').on('click', function() {
+            var userId = $(this).data('id');
+            $.ajax({
+                url: 'fetch_user.php',
+                type: 'POST',
+                data: { user_id: userId },
+                success: function(data) {
+                    $('#userDetails').html(data);
+                    $('#readUserModal').modal('show');
+                },
+                error: function() {
+                    alert('Error fetching user details. Please try again.');
                 }
             });
         });

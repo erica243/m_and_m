@@ -68,3 +68,10 @@ if (isset($_POST['user_id'])) {
     $conn->close();
 }
 ?>
+
+<script>
+    function closeDetails() {
+        // Close the user details view (you can customize this to hide a specific section)
+        window.history.back(); // Navigates back to the previous page
+    }
+</script>

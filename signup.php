@@ -1,40 +1,81 @@
-<?php session_start() ?>
+<?php session_start(); ?>
 <?php
-        // Check if the form was submitted
-        if ($_SERVER["REQUEST_METHOD"] == "POST") {
-            $first_name = $_POST['first_name'];
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
 
-            // Sanitize input to remove any HTML or script tags
-            $first_name_sanitized = htmlspecialchars($first_name, ENT_QUOTES, 'UTF-8');
+require 'vendor/autoload.php';
+include('admin/db_connect.php');
 
-            // Validate the input: allow letters, hyphens, apostrophes, and spaces, but block < or >
-            if (!preg_match("/^[A-Za-z\s'-]+$/", $first_name)) {
-                echo '<div class="alert alert-danger">Invalid input: Please enter a valid name (letters, hyphens, apostrophes, and spaces only).</div>';
-            } else if ($first_name !== $first_name_sanitized) {
-                echo '<div class="alert alert-danger">Invalid input: HTML or script tags are not allowed.</div>';
-            } else {
-                // If valid, display success message
-                echo '<div class="alert alert-success">Input is valid. Form submitted successfully!</div>';
-                // Here, you can proceed with storing or processing the sanitized input.
-            }
+// Check connection
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
 
-            $last_name = $_POST['last_name'];
+// Function to send OTP email
+function sendOtpEmail($email, $otp) {
+    $mail = new PHPMailer(true);
+    try {
+        // Server settings
+        $mail->isSMTP();
+        $mail->Host = 'smtp.gmail.com'; 
+        $mail->SMTPAuth = true;
+        $mail->Username = 'mandmcakeorderingsystem.com'; 
+        $mail->Password = 'dgld kvqo yecu wdka'; 
+        $mail->SMTPSecure = 'tls';
+        $mail->Port = 587;
 
-            // Sanitize input to remove any HTML or script tags
-            $last_name_sanitized = htmlspecialchars($last_name, ENT_QUOTES, 'UTF-8');
+        // Recipients
+        $mail->setFrom('mandmcakeorderingsystem.com', 'Your Name');
+        $mail->addAddress($email);
 
-            // Validate the input: allow letters, hyphens, apostrophes, and spaces, but block < or >
-            if (!preg_match("/^[A-Za-z\s'-]+$/", $last_name)) {
-                echo '<div class="alert alert-danger">Invalid input: Please enter a valid name (letters, hyphens, apostrophes, and spaces only).</div>';
-            } else if ($last_name !== $last_name_sanitized) {
-                echo '<div class="alert alert-danger">Invalid input: HTML or script tags are not allowed.</div>';
-            } else {
-                // If valid, display success message
-                echo '<div class="alert alert-success">Input is valid. Form submitted successfully!</div>';
-                // Here, you can proceed with storing or processing the sanitized input.
-            }
+        // Content
+        $mail->isHTML(true);
+        $mail->Subject = 'Your OTP Code';
+        $mail->Body = "Your OTP code is: <strong>$otp</strong>";
+
+        $mail->send();
+        return true;
+    } catch (Exception $e) {
+        return false;
+    }
+}
+
+// Check if the form was submitted
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $first_name = htmlspecialchars(trim($_POST['first_name']));
+    $last_name = htmlspecialchars(trim($_POST['last_name']));
+    $email = htmlspecialchars(trim($_POST['email']));
+    $address = htmlspecialchars(trim($_POST['address']));
+
+    // Validate inputs
+    if (!preg_match("/^[A-Za-z\s'-]+$/", $first_name) || !preg_match("/^[A-Za-z\s'-]+$/", $last_name)) {
+        echo '<div class="alert alert-danger">Invalid input for names.</div>';
+        exit();
+    }
+
+    // Generate OTP
+    $otp = rand(100000, 999999); 
+
+    // Send OTP email
+    if (sendOtpEmail($email, $otp)) {
+        // Store OTP and user information in the database
+        $stmt = $conn->prepare("UPDATE user_info SET otp = ? WHERE email = ?");
+        $stmt->bind_param("is", $otp, $email);
+        
+        if ($stmt->execute()) {
+            $_SESSION['email'] = $email; // Store email in session
+            echo '<div class="alert alert-success">OTP has been sent to your email. Please verify it.</div>';
+            header("Location: verify.php");
+            exit();
+        } else {
+            echo '<div class="alert alert-danger">Failed to store OTP in the database. Please try again.</div>';
         }
-        // Fetch all addresses from the shipping_info table
+    } else {
+        echo '<div class="alert alert-danger">Failed to send OTP. Please try again.</div>';
+    }
+}
+
+// Fetch all addresses from the shipping_info table
 $addresses = [];
 $stmt = $conn->prepare("SELECT address FROM shipping_info");
 $stmt->execute();
@@ -45,22 +86,23 @@ while ($row = $result->fetch_assoc()) {
     $addresses[] = $row['address'];
 }
 
-        ?>
+$conn->close();
+?>
+
 <div class="container-fluid">
-	<form action="" id="signup-frm">
-		<div class="form-group">
-         <label for="first_name">First Name</label>
-         <input type="text" class="form-control" id="fname" name="first_name" placeholder="" required oninput="validateInput()" pattern="[A-Za-z\s'-]+">
-                     
-		</div>
-		<div class="form-group">
-			<label for="last_name" class="control-label">Lastname</label>
-            <input type="text" class="form-control" id="lname" name="last_name" placeholder="" required oninput="validateInputs()" pattern="[A-Za-z\s'-]+">
-            </div>
-		<div class="form-group">
-			<label for="" class="control-label">Contact</label>
-			<input type="text" name="mobile" required="" class="form-control" maxlength="11">
-		</div>
+    <form action="" method="POST" id="signup-frm">
+        <div class="form-group">
+            <label for="first_name">First Name</label>
+            <input type="text" class="form-control" id="fname" name="first_name" placeholder="Enter Firstname" required>
+        </div>
+        <div class="form-group">
+            <label for="last_name" class="control-label">Lastname</label>
+            <input type="text" class="form-control" id="lname" name="last_name" placeholder="Enter Lastname" required>
+        </div>
+        <div class="form-group">
+            <label for="" class="control-label">Contact</label>
+            <input type="tel" name="mobile" required="" class="form-control" maxlength="11">
+        </div>
         <div class="form-group">
             <label for="" class="control-label">Address</label>
             <select name="address" class="form-control" required>
@@ -70,31 +112,31 @@ while ($row = $result->fetch_assoc()) {
                 <?php endforeach; ?>
             </select>
         </div>
-		<div class="form-group">
-			<label for="" class="control-label">Email</label>
-			<input type="email" name="email" required="" class="form-control">
-		</div>
-		<div class="form-group">
-			<label for="" class="control-label">Password</label>
-			<input type="password" name="password" id="password" required="" class="form-control">
-			<input type="checkbox" id="show-password"> Show Password
-			<small class="form-text text-muted">Password must be at least 8 characters long and include a combination of uppercase letters, lowercase letters, numbers, and symbols.</small>
-			<div id="password-strength-meter" class="progress mt-2" style="height: 20px;">
-				<div class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-			</div>
-			<small id="password-strength-text" class="form-text mt-2"></small>
-		</div>
-		<button type="submit" class="btn btn-info btn-sm">Create</button>
-	</form>
+        <div class="form-group">
+            <label for="" class="control-label">Email</label>
+            <input type="email" name="email" required="" class="form-control">
+        </div>
+        <div class="form-group">
+            <label for="" class="control-label">Password</label>
+            <input type="password" name="password" id="password" required="" class="form-control">
+            <input type="checkbox" id="show-password"> Show Password
+            <small class="form-text text-muted">Password must be at least 8 characters long and include a combination of uppercase letters, lowercase letters, numbers, and symbols.</small>
+            <div id="password-strength-meter" class="progress mt-2" style="height: 20px;">
+                <div class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+            <small id="password-strength-text" class="form-text mt-2"></small>
+        </div>
+        <button type="submit" class="btn btn-info btn-sm">Create</button>
+    </form>
 </div>
 
 <style>
-	#uni_modal .modal-footer{
-		display:none;
-	}
+    #uni_modal .modal-footer {
+        display: none;
+    }
 </style>
 
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
 $(document).ready(function() {
     // Password visibility toggle
@@ -148,77 +190,16 @@ $(document).ready(function() {
         switch(result.strength) {
             case 0:
             case 1:
-                strengthText = 'Very weak';
-                $('#password-strength-meter .progress-bar').removeClass().addClass('progress-bar bg-danger');
-                break;
+                strengthText = 'Weak password. It must ' + result.feedback.join(', ') + '.'; break;
             case 2:
-                strengthText = 'Weak';
-                $('#password-strength-meter .progress-bar').removeClass().addClass('progress-bar bg-warning');
-                break;
+                strengthText = 'Fair password. It must ' + result.feedback.join(', ') + '.'; break;
             case 3:
-                strengthText = 'Fair';
-                $('#password-strength-meter .progress-bar').removeClass().addClass('progress-bar bg-info');
-                break;
+                strengthText = 'Good password. It could be stronger.'; break;
             case 4:
-                strengthText = 'Good';
-                $('#password-strength-meter .progress-bar').removeClass().addClass('progress-bar bg-primary');
-                break;
             case 5:
-                strengthText = 'Strong';
-                $('#password-strength-meter .progress-bar').removeClass().addClass('progress-bar bg-success');
-                break;
+                strengthText = 'Strong password.'; break;
         }
-
-        var feedbackText = result.feedback.length > 0 ? 'Password should ' + result.feedback.join(", ") + '.' : '';
-        $('#password-strength-text').html('Password strength: ' + strengthText + '<br>' + feedbackText);
-    });
-
-    // Form submit with SweetAlert
-    $('#signup-frm').submit(function(e){
-        e.preventDefault();
-        var password = $('#password').val();
-        var result = checkPasswordStrength(password);
-
-        if (result.strength < 5) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Weak Password',
-                text: 'Please create a stronger password. ' + result.feedback.join(", "),
-            });
-            return false;
-        }
-
-        // Disable the button and show loading text
-        $('#signup-frm button[type="submit"]').attr('disabled',true).html('Saving...');
-
-        // AJAX request
-        $.ajax({
-            url: 'admin/ajax.php?action=signup',
-            method: 'POST',
-            data: $(this).serialize(),
-            error: function(err){
-                console.log(err);
-                $('#signup-frm button[type="submit"]').removeAttr('disabled').html('Create');
-            },
-            success: function(resp){
-                if(resp == 1){
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Signup Successful',
-                        text: 'You have successfully created an account!',
-                    }).then(function() {
-                        location.href = '<?php echo isset($_GET['redirect']) ? $_GET['redirect'] : 'index.php?page=home' ?>';
-                    });
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Email Exists',
-                        text: 'The email you provided is already registered.',
-                    });
-                    $('#signup-frm button[type="submit"]').removeAttr('disabled').html('Create');
-                }
-            }
-        });
+        $('#password-strength-text').text(strengthText);
     });
 });
 </script>

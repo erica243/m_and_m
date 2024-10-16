@@ -1,5 +1,7 @@
 <?php
+
 ob_start();
+include 'db_connect.php'; // This should define $conn for database operations
 include 'admin_class.php';
 $crud = new Action();
 
@@ -197,21 +199,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_GET['action'] == 'update_delivery
     $stmt->close();
 }
 
-if (isset($_POST['user_id'])) {
-    $user_id = $_POST['user_id'];
-
-    // Prepare the delete statement
-    $stmt = $conn->prepare("DELETE FROM user_info WHERE user_id = ?");
-    $stmt->bind_param("i", $user_id);
-    $stmt->execute();
-
-    if ($stmt->affected_rows > 0) {
-        echo "User has been deleted.";
-    } else {
-        echo "User not found.";
-    }
-
-    $stmt->close();
-    $conn->close();
-}
 ?>

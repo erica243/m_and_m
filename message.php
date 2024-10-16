@@ -318,10 +318,7 @@ if (isset($_POST['reply']) && isset($_POST['message_id'])) {
             <label for="email">Email</label>
             <input type="email" class="form-control email" id="email" name="email" required>
         </div>
-        <div class="form-group">
-            <label for="order_number">Order Number</label>
-            <input type="text" class="form-control order_number" id="order_number" name="order_number" required>
-        </div>
+       
         <div class="form-group">
             <label for="message">Message</label>
             <textarea class="form-control" id="message" name="message" required></textarea>
@@ -344,7 +341,7 @@ if (isset($_POST['reply']) && isset($_POST['message_id'])) {
             while ($row = $result->fetch_assoc()) {
                 echo '<div class="message-box">';
                 echo '<strong>Email:</strong> ' . htmlspecialchars($row['email']) . '<br>';
-                echo '<strong>Order Number:</strong> ' . htmlspecialchars($row['order_number']) . '<br>';
+            
                 echo '<strong>Message:</strong> <p>' . htmlspecialchars($row['message']) . '</p>';
                 if ($row['image_path']) {
                     echo '<img src="' . htmlspecialchars($row['image_path']) . '" alt="Uploaded Image">';
