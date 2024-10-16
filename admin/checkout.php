@@ -41,9 +41,9 @@ if ($chk <= 0) {
                 <!-- End Delivery or Pick-up Selection -->
 
                 <div class="form-group delivery-info">
-    <label class="control-label">Firstname</label>
-    <input type="text" name="first_name" required class="form-control" value="<?php echo htmlspecialchars($_SESSION['login_first_name']); ?>" readonly>
-</div>
+                    <label class="control-label">Firstname</label>
+                    <input type="text" name="first_name" required class="form-control" value="<?php echo htmlspecialchars($_SESSION['login_first_name']); ?>" readonly>
+                </div>
 
                 <div class="form-group delivery-info">
                     <label class="control-label">Lastname</label>
@@ -54,9 +54,9 @@ if ($chk <= 0) {
                     <input type="text" name="mobile" required class="form-control" value="<?php echo $_SESSION['login_mobile'] ?>" readonly>
                 </div>
                 <div class="form-group delivery-info">
-    <label class="control-label">Address</label>
-    <textarea cols="30" rows="3" name="address" required class="form-control" readonly><?php echo htmlspecialchars($_SESSION['login_address']); ?></textarea>
-</div>
+                    <label class="control-label">Address</label>
+                    <textarea cols="30" rows="3" name="address" required class="form-control" readonly><?php echo htmlspecialchars($_SESSION['login_address']); ?></textarea>
+                </div>
 
                 <div class="form-group delivery-info">
                     <label class="control-label">Email</label>
@@ -64,15 +64,15 @@ if ($chk <= 0) {
                 </div>
 
                 <!-- Pick-up Date and Time -->
-<div class="form-group pickup-info" style="display:none;">
-    <label class="control-label">Pick-up Date</label>
-    <input type="date" name="pickup_date" class="form-control" min="<?php echo date('m-d-Y'); ?>">
-</div>
-<div class="form-group pickup-info" style="display:none;">
-    <label class="control-label">Pick-up Time</label>
-    <input type="time" name="pickup_time" class="form-control">
-</div>
-<!-- End Pick-up Date and Time -->
+                <div class="form-group pickup-info" style="display:none;">
+                    <label class="control-label">Pick-up Date</label>
+                    <input type="date" name="pickup_date" class="form-control" min="<?php echo date('Y-m-d'); ?>">
+                </div>
+                <div class="form-group pickup-info" style="display:none;">
+                    <label class="control-label">Pick-up Time</label>
+                    <input type="time" name="pickup_time" class="form-control">
+                </div>
+                <!-- End Pick-up Date and Time -->
 
                 <!-- Agreement Checkbox -->
                 <div class="form-group">
@@ -99,10 +99,10 @@ if ($chk <= 0) {
 <script>
     $(document).ready(function(){
         $('#payment_method').change(function(){
-            if ($(this).val() == 'gcash') { // Update the value to 'gcash' to match the option value
+            if ($(this).val() == 'gcash') {
                 Swal.fire({
                     title: 'Scan QR Code with G-Cash',
-                    imageUrl: 'assets/img/gcash.jpg', // Update this to the path of your QR code image
+                    imageUrl: 'assets/img/gcash.jpg', // Path of your QR code image
                     imageWidth: 500,
                     imageHeight: 600,
                     imageAlt: 'G-Cash QR Code',
@@ -112,8 +112,10 @@ if ($chk <= 0) {
                         $('.order-type-selection').show();
                     }
                 });
+            } else if ($(this).val() == 'cash') {
+                $('.order-type-selection').show(); // Show order type options for cash
             } else {
-                $('.order-type-selection').show();
+                $('.order-type-selection').hide(); // Hide if no valid option is selected
             }
         });
 

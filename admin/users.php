@@ -1,42 +1,6 @@
 <?php 
 include('db_connect.php');
 ?>
-<?php
-        // Check if the form was submitted
-        if ($_SERVER["REQUEST_METHOD"] == "POST") {
-            $first_name = $_POST['first_name'];
-
-            // Sanitize input to remove any HTML or script tags
-            $first_name_sanitized = htmlspecialchars($first_name, ENT_QUOTES, 'UTF-8');
-
-            // Validate the input: allow letters, hyphens, apostrophes, and spaces, but block < or >
-            if (!preg_match("/^[A-Za-z\s'-]+$/", $first_name)) {
-                echo '<div class="alert alert-danger">Invalid input: Please enter a valid name (letters, hyphens, apostrophes, and spaces only).</div>';
-            } else if ($first_name !== $first_name_sanitized) {
-                echo '<div class="alert alert-danger">Invalid input: HTML or script tags are not allowed.</div>';
-            } else {
-                // If valid, display success message
-                echo '<div class="alert alert-success">Input is valid. Form submitted successfully!</div>';
-                // Here, you can proceed with storing or processing the sanitized input.
-            }
-
-            $last_name = $_POST['last_name'];
-
-            // Sanitize input to remove any HTML or script tags
-            $last_name_sanitized = htmlspecialchars($last_name, ENT_QUOTES, 'UTF-8');
-
-            // Validate the input: allow letters, hyphens, apostrophes, and spaces, but block < or >
-            if (!preg_match("/^[A-Za-z\s'-]+$/", $last_name)) {
-                echo '<div class="alert alert-danger">Invalid input: Please enter a valid name (letters, hyphens, apostrophes, and spaces only).</div>';
-            } else if ($last_name !== $last_name_sanitized) {
-                echo '<div class="alert alert-danger">Invalid input: HTML or script tags are not allowed.</div>';
-            } else {
-                // If valid, display success message
-                echo '<div class="alert alert-success">Input is valid. Form submitted successfully!</div>';
-                // Here, you can proceed with storing or processing the sanitized input.
-            }
-        }
-        ?>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -59,8 +23,8 @@ include('db_connect.php');
                     <thead>
                         <tr>
                             <th class="text-center">#</th>
-                            <th class="text-center"required oninput="validateInput()" pattern="[A-Za-z\s'-]+">First Name</th>
-                            <th class="text-center"required oninput="validateInput()" pattern="[A-Za-z\s'-]+">Last Name</th>
+                            <th class="text-center">First Name</th>
+                            <th class="text-center">Last Name</th>
                             <th class="text-center">Email</th>
                             <th class="text-center">Mobile</th>
                             <th class="text-center">Address</th>

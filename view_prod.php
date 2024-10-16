@@ -10,7 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_rating'])) {
     $user = $_SESSION['user_id']; // Ensure the user is logged in and their ID is stored in session
 
     // Insert rating and feedback into the database
-    $stmt = $conn->prepare("INSERT INTO product_ratings (product_id, user, rating, feedback) VALUES (?, ?, ?, ?)");
+    $stmt = $conn->prepare("INSERT INTO product_ratings (product_id, user_id, rating, feedback) VALUES (?, ?, ?, ?)");
     $stmt->bind_param("iiis", $product_id, $user, $rating, $feedback);
 
     if ($stmt->execute()) {
@@ -29,8 +29,35 @@ $rating_qry = $conn->query("SELECT AVG(rating) as avg_rating FROM product_rating
 $avg_rating = $rating_qry->fetch_assoc()['avg_rating'];
 $avg_rating = $avg_rating ? number_format($avg_rating, 1) : 'No ratings yet';
 
+// Fetch all ratings and feedback for the product, along with the user's email from user_info table
+$feedback_qry = $conn->query("
+    SELECT pr.rating, pr.feedback, ui.email 
+    FROM product_ratings pr
+    JOIN user_info ui ON pr.user_id = ui.user_id
+    WHERE pr.product_id = $product_id
+");
+
+$feedback = $feedback_qry->fetch_all(MYSQLI_ASSOC);
+
 // Check product availability
-$availability = $qry['status']; // Assuming 'available' is a boolean or 1/0
+$availability = $qry['status']; // Assuming 'status' is a boolean or 1/0
+
+// Function to display star ratings
+function display_star_rating($rating) {
+    $full_stars = floor($rating);
+    $half_star = ($rating - $full_stars >= 0.5) ? 1 : 0;
+    $empty_stars = 5 - ($full_stars + $half_star);
+
+    for ($i = 0; $i < $full_stars; $i++) {
+        echo '<i class="fas fa-star" style="color: #ffd700;"></i>';
+    }
+    if ($half_star) {
+        echo '<i class="fas fa-star-half-alt" style="color: #ffd700;"></i>';
+    }
+    for ($i = 0; $i < $empty_stars; $i++) {
+        echo '<i class="far fa-star" style="color: #ffd700;"></i>';
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -49,9 +76,9 @@ $availability = $qry['status']; // Assuming 'available' is a boolean or 1/0
         .star.selected {
             color: #ffd700;
         }
-        .btn-disabled {
-            pointer-events: none;
-            opacity: 0.5;
+        .btn.disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
         }
     </style>
 </head>
@@ -63,7 +90,13 @@ $availability = $qry['status']; // Assuming 'available' is a boolean or 1/0
             <h5 class="card-title"><?php echo htmlspecialchars($qry['name']) ?></h5>
             <p class="card-text"><?php echo htmlspecialchars($qry['description']) ?></p>
             <p class="card-text">Price: <?php echo number_format($qry['price'], 2) ?></p>
-            <p class="card-text">Average Rating: <?php echo $avg_rating ?> / 5</p>
+            <p class="card-text">Average Rating: 
+                <?php if ($avg_rating !== 'No ratings yet'): ?>
+                    <?php display_star_rating($avg_rating); ?> (<?php echo $avg_rating; ?> / 5)
+                <?php else: ?>
+                    No ratings yet
+                <?php endif; ?>
+            </p>
             <p class="card-text <?php echo $availability ? '' : 'text-danger' ?>"><?php echo $availability ? 'In Stock' : 'Unavailable' ?></p>
             <div class="row mb-3">
                 <div class="col-md-2"><label class="control-label">Qty</label></div>
@@ -78,36 +111,32 @@ $availability = $qry['status']; // Assuming 'available' is a boolean or 1/0
                 </div>
             </div>
             <div class="text-center mb-4">
-                <button class="btn btn-outline-dark btn-sm btn-block" id="add_to_cart_modal" data-availability="<?php echo $availability ?>" <?php echo !$availability ? 'class="btn-disabled"' : '' ?>>
-                    <i class="fa fa-cart-plus"></i> Add to Cart
+                <button 
+                    class="btn btn-outline-dark btn-sm btn-block <?php echo !$availability ? 'disabled' : ''; ?>" 
+                    id="add_to_cart_modal" 
+                    data-availability="<?php echo $availability; ?>" 
+                    <?php echo !$availability ? 'disabled' : ''; ?>
+                >
+                    <i class="fa fa-cart-plus"></i> <?php echo $availability ? 'Add to Cart' : 'Unavailable'; ?>
                 </button>
             </div>
-            <!-- Rating Form -->
-            <div class="rating-form">
-                <h6>Rate this product:</h6>
-                <div class="rating">
-                    <span class="star" data-rating="5">&#9733;</span>
-                    <span class="star" data-rating="4">&#9733;</span>
-                    <span class="star" data-rating="3">&#9733;</span>
-                    <span class="star" data-rating="2">&#9733;</span>
-                    <span class="star" data-rating="1">&#9733;</span>
+
+            <h5 class="mt-4">User Ratings and Feedback</h5>
+            <?php if ($feedbacks): ?>
+                <div class="list-group">
+                    <?php foreach ($feedbacks as $feedback): ?>
+                        <div class="list-group-item">
+                            <h6 class="mb-1">Rating: 
+                                <?php display_star_rating($feedback['rating']); ?> 
+                                (<?php echo htmlspecialchars($feedback['rating']); ?> / 5)
+                            </h6>
+                            <p><?php echo htmlspecialchars($feedback['feedback']); ?></p>
+                            <small>Submitted by: <?php echo htmlspecialchars($feedback['email']); ?></small>
+                        </div>
+                    <?php endforeach; ?>
                 </div>
-                <input type="hidden" name="rating" id="rating-value">
-                <div class="form-group mt-3">
-                    <label for="feedback">Feedback:</label>
-                    <textarea class="form-control" id="feedback" rows="3" placeholder="Enter your feedback here..."></textarea>
-                </div>
-                <button class="btn btn-outline-dark btn-sm" id="submit-rating">Submit Rating</button>
-            </div>
-            <?php if (isset($success_message)): ?>
-                <div class="alert alert-success mt-3" role="alert">
-                    <?php echo $success_message; ?>
-                </div>
-            <?php endif; ?>
-            <?php if (isset($error_message)): ?>
-                <div class="alert alert-danger mt-3" role="alert">
-                    <?php echo $error_message; ?>
-                </div>
+            <?php else: ?>
+                <p>No feedback available yet.</p>
             <?php endif; ?>
         </div>
     </div>
@@ -151,12 +180,12 @@ $availability = $qry['status']; // Assuming 'available' is a boolean or 1/0
                 $.ajax({
                     url: 'admin/ajax.php?action=add_to_cart',
                     method: 'POST',
-                    data: { pid: '<?php echo $product_id ?>', qty: $('[name="qty"]').val() },
+                    data: { pid: '<?php echo $product_id ?>', qty: $('input[name="qty"]').val() },
                     success: function(resp) {
                         if (resp == 1) {
-                            Swal.fire('Added!', 'Item successfully added to cart.', 'success');
+                            Swal.fire('Added!', 'The product has been added to your cart.', 'success');
                         } else {
-                            Swal.fire('Error!', 'Error adding item to cart.', 'error');
+                            Swal.fire('Error!', 'There was an error adding the product to your cart.', 'error');
                         }
                     }
                 });
@@ -164,37 +193,12 @@ $availability = $qry['status']; // Assuming 'available' is a boolean or 1/0
         });
     });
 
-    // Handle rating submission
-    $('.star').click(function(){
-        var rating = $(this).data('rating');
-        $('#rating-value').val(rating);
-        $('.star').each(function(){
-            $(this).toggleClass('selected', $(this).data('rating') <= rating);
-        });
-    });
-
-    $('#submit-rating').click(function(){
-        var rating = $('#rating-value').val();
-        var feedback = $('#feedback').val();
-        if (!rating) {
-            Swal.fire('Error', 'Please select a rating.', 'error');
-            return;
+    // Ensure button state is correctly set on page load
+    $(document).ready(function() {
+        var availability = $('#add_to_cart_modal').data('availability');
+        if (!availability) {
+            $('#add_to_cart_modal').prop('disabled', true).addClass('disabled');
         }
-        $.ajax({
-            url: 'admin/ajax.php?action=submit_rating',
-            method: 'POST',
-            data: { product_id: '<?php echo $product_id ?>', rating: rating, feedback: feedback },
-            success: function(resp) {
-                if (resp == 1) {
-                    Swal.fire('Thank you!', 'Your rating has been submitted.', 'success');
-                } else {
-                    Swal.fire('Error!', 'There was an error submitting your rating.', 'error');
-                }
-            },
-            error: function(xhr, status, error) {
-                console.log('AJAX Error:', error);
-            }
-        });
     });
 </script>
 </body>

@@ -1,5 +1,7 @@
 <?php
+
 ob_start();
+include 'db_connect.php'; // This should define $conn for database operations
 include 'admin_class.php';
 $crud = new Action();
 
@@ -196,6 +198,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_GET['action'] == 'update_delivery
     // Close the statement
     $stmt->close();
 }
-
 
 ?>

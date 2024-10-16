@@ -54,7 +54,7 @@
                         <th>Delivery Method</th>
                         <th>Pick-up Date</th>
                         <th>Pick-up Time</th>
-                        <th>Status</th>
+                        <th>Delivery Status</th> <!-- Changed to Delivery Status -->
                         <th>Proof of Payment</th>
                         <th></th>
                     </tr>
@@ -77,11 +77,31 @@
                         <td><?php echo $row['delivery_method'] ?></td>
                         <td><?php echo !empty($row['pickup_date']) ? date('m-d-Y', strtotime($row['pickup_date'])) : 'N/A'; ?></td>
                         <td><?php echo !empty($row['pickup_time']) ? $row['pickup_time'] : 'N/A'; ?></td>
-                        <?php if($row['status'] == 1): ?>
-                            <td class="text-center"><span class="badge badge-success">Confirmed</span></td>
-                        <?php else: ?>
-                            <td class="text-center"><span class="badge badge-secondary">For Verification</span></td>
-                        <?php endif; ?>
+                        <td class="text-center">
+                            <?php
+                            // Delivery status options
+                            switch ($row['delivery_status']) {
+                                case 'pending':
+                                    echo '<span class="badge badge-warning">Pending</span>';
+                                    break;
+                                case 'confirmed':
+                                    echo '<span class="badge badge-info">Confirmed</span>';
+                                    break;
+                                case 'arrived':
+                                    echo '<span class="badge badge-primary">Arrived</span>';
+                                    break;
+                                case 'delivered':
+                                    echo '<span class="badge badge-success">Delivered</span>';
+                                    break;
+                                case 'completed':
+                                    echo '<span class="badge badge-dark">Completed</span>';
+                                    break;
+                                default:
+                                    echo '<span class="badge badge-secondary">Unknown</span>';
+                                    break;
+                            }
+                            ?>
+                        </td>
                         <td class="text-center payment-proof">
                             <?php if (!empty($row['payment_proof'])): ?>
                                 <img src="<?php echo $row['payment_proof']; ?>" alt="Proof of Payment" onclick="viewImage('<?php echo $row['payment_proof']; ?>')">
