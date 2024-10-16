@@ -1,333 +1,205 @@
+<?php 
+include 'admin/db_connect.php';
+session_start(); // Ensure session handling
+
+// Handle form submission for ratings
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_rating'])) {
+    $product_id = $_POST['product_id'];
+    $rating = $_POST['rating'];
+    $feedback = $_POST['feedback'];
+    $user = $_SESSION['user_id']; // Ensure the user is logged in and their ID is stored in session
+
+    // Insert rating and feedback into the database
+    $stmt = $conn->prepare("INSERT INTO product_ratings (product_id, user_id, rating, feedback) VALUES (?, ?, ?, ?)");
+    $stmt->bind_param("iiis", $product_id, $user, $rating, $feedback);
+
+    if ($stmt->execute()) {
+        $success_message = 'Your rating has been submitted.';
+    } else {
+        $error_message = 'There was an error submitting your rating.';
+    }
+}
+
+// Fetch product details
+$product_id = intval($_GET['id']); // Ensure id is an integer
+$qry = $conn->query("SELECT * FROM product_list WHERE id = $product_id")->fetch_array();
+
+// Fetch average rating
+$rating_qry = $conn->query("SELECT AVG(rating) as avg_rating FROM product_ratings WHERE product_id = $product_id");
+$avg_rating = $rating_qry->fetch_assoc()['avg_rating'];
+$avg_rating = $avg_rating ? number_format($avg_rating, 1) : 'No ratings yet';
+
+// Fetch all ratings and feedback for the product, along with the user's email from user_info table
+$feedback_qry = $conn->query("
+    SELECT pr.rating, pr.feedback, ui.email 
+    FROM product_ratings pr
+    JOIN user_info ui ON pr.user_id = ui.user_id
+    WHERE pr.product_id = $product_id
+");
+
+$feedbacks = $feedback_qry->fetch_all(MYSQLI_ASSOC);
+
+// Check product availability
+$availability = $qry['status']; // Assuming 'status' is a boolean or 1/0
+
+// Function to display star ratings
+function display_star_rating($rating) {
+    $full_stars = floor($rating);
+    $half_star = ($rating - $full_stars >= 0.5) ? 1 : 0;
+    $empty_stars = 5 - ($full_stars + $half_star);
+
+    for ($i = 0; $i < $full_stars; $i++) {
+        echo '<i class="fas fa-star" style="color: #ffd700;"></i>';
+    }
+    if ($half_star) {
+        echo '<i class="fas fa-star-half-alt" style="color: #ffd700;"></i>';
+    }
+    for ($i = 0; $i < $empty_stars; $i++) {
+        echo '<i class="far fa-star" style="color: #ffd700;"></i>';
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Order Details</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <title>Product Details</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <style>
-        #uni_modal .modal-dialog {
-            max-width: 90%;
-            width: auto;
+        .star {
+            cursor: pointer;
+            font-size: 2rem;
+            color: #ddd;
         }
-        #uni_modal .modal-body {
-            overflow-x: auto;
+        .star.selected {
+            color: #ffd700;
         }
-        #uni_modal .modal-footer {
-            display: none;
+        .btn.disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
         }
     </style>
 </head>
 <body>
-<?php
-include 'db_connect.php';
-$orderId = $_GET['id'];
-
-// Use prepared statements for security
-$stmt = $conn->prepare("SELECT * FROM orders WHERE id = ?");
-$stmt->bind_param("i", $orderId);
-$stmt->execute();
-$order = $stmt->get_result()->fetch_assoc();
-$orderStatus = $order['status']; // 1 for confirmed, 0 for not confirmed
-
-// Convert the order date to 'm-d-Y' format
-$formatted_order_date = date("m-d-Y", strtotime($order['order_date']));
-
-// Fetch order items
-$stmt = $conn->prepare("SELECT o.qty, p.name, p.description, p.price, 
-                                (o.qty * p.price) AS amount
-                        FROM order_list o 
-                        INNER JOIN product_list p ON o.product_id = p.id 
-                        WHERE o.order_id = ?");
-$stmt->bind_param("i", $orderId);
-$stmt->execute();
-$orderItems = $stmt->get_result();
-
-// Fetch shipping information based on the order's address
-$address = $order['address']; // Get the address from the order
-$shippingStmt = $conn->prepare("SELECT shipping_amount FROM shipping_info WHERE address = ?");
-$shippingStmt->bind_param("s", $address);
-$shippingStmt->execute();
-$shippingResult = $shippingStmt->get_result();
-$shippingAmount = $shippingResult->fetch_assoc()['shipping_amount'] ?? 0;
-
-// Fetch unique user addresses for shipping
-$addressesStmt = $conn->prepare("SELECT * FROM user_info WHERE user_id = ?");
-$addressesStmt->bind_param("i", $order['user_id']);
-$addressesStmt->execute();
-$addresses = $addressesStmt->get_result();
-?>
-
 <div class="container-fluid mt-4">
-    <h4>Order Details</h4>
-    <table class="table table-bordered mt-4">
-        <thead>
-            <tr>
-                <th>Order Date</th>
-                <th>Order Number</th>
-                <th>Customer Name</th>
-                <th>Address</th>
-                <th>Delivery Method</th>
-                <th>Mode of Payment</th>
-                <th>Qty</th>
-                <th>Product</th>
-                <th>Description</th>
-                <th>Price</th>
-                <th>Amount</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php 
-            $total = 0;
-            while ($row = $orderItems->fetch_assoc()):
-                $total += $row['amount'];
-            ?>
-            <tr>
-                <td><?php echo $formatted_order_date; ?></td>
-                <td><?php echo $order['order_number']; ?></td>
-                <td><?php echo $order['name']; ?></td>
-                <td><?php echo $order['address']; ?></td>
-                <td><?php echo $order['delivery_method']; ?></td>
-                <td><?php echo $order['payment_method']; ?></td>
-                <td><?php echo $row['qty']; ?></td>
-                <td><?php echo $row['name']; ?></td>
-                <td><?php echo $row['description']; ?></td>
-                <td><?php echo number_format($row['price'], 2); ?></td>
-                <td><?php echo number_format($row['amount'], 2); ?></td>
-            </tr>
-            <?php endwhile; ?>
-        </tbody>
-        <tfoot>
-            <tr>
-                <th colspan="10" class="text-right">Subtotal</th>
-                <th><?php echo number_format($total, 2); ?></th>
-            </tr>
-            <tr>
-                <th colspan="10" class="text-right">Shipping Amount</th>
-                <th><?php echo number_format($shippingAmount, 2); ?></th>
-            </tr>
-            <tr>
-                <th colspan="10" class="text-right">TOTAL</th>
-                <th><?php echo number_format($total + $shippingAmount, 2); ?></th>
-            </tr>
-        </tfoot>
-    </table>
-    
-    <div class="text-center mt-4">
-<<<<<<< HEAD
-    <button class="btn btn-primary" id="confirm" type="button" onclick="confirm_order()" <?php echo $orderStatus == 1 ? 'disabled' : '' ?>>Confirm</button>
-    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-    <button class="btn btn-success" type="button" onclick="print_receipt()">Print Receipt</button>
-    <button class="btn btn-danger" type="button" id="delete_order" onclick="delete_order()">Delete Order</button>
+    <div class="card">
+        <img src="assets/img/<?php echo htmlspecialchars($qry['img_path']) ?>" class="card-img-top" alt="Product Image">
+        <div class="card-body">
+            <h5 class="card-title"><?php echo htmlspecialchars($qry['name']) ?></h5>
+            <p class="card-text"><?php echo htmlspecialchars($qry['description']) ?></p>
+            <p class="card-text">Price: <?php echo number_format($qry['price'], 2) ?></p>
+            <p class="card-text">Average Rating: 
+                <?php if ($avg_rating !== 'No ratings yet'): ?>
+                    <?php display_star_rating($avg_rating); ?> (<?php echo $avg_rating; ?> / 5)
+                <?php else: ?>
+                    No ratings yet
+                <?php endif; ?>
+            </p>
+            <p class="card-text <?php echo $availability ? '' : 'text-danger' ?>"><?php echo $availability ? 'In Stock' : 'Unavailable' ?></p>
+            <div class="row mb-3">
+                <div class="col-md-2"><label class="control-label">Qty</label></div>
+                <div class="input-group col-md-7">
+                    <div class="input-group-prepend">
+                        <button class="btn btn-outline-secondary" type="button" id="qty-minus"><span class="fa fa-minus"></span></button>
+                    </div>
+                    <input type="number" readonly value="1" min="1" class="form-control text-center" name="qty">
+                    <div class="input-group-append">
+                        <button class="btn btn-outline-dark" type="button" id="qty-plus"><span class="fa fa-plus"></span></button>
+                    </div>
+                </div>
+            </div>
+            <div class="text-center mb-4">
+                <button 
+                    class="btn btn-outline-dark btn-sm btn-block <?php echo !$availability ? 'disabled' : ''; ?>" 
+                    id="add_to_cart_modal" 
+                    data-availability="<?php echo $availability; ?>" 
+                    <?php echo !$availability ? 'disabled' : ''; ?>
+                >
+                    <i class="fa fa-cart-plus"></i> <?php echo $availability ? 'Add to Cart' : 'Unavailable'; ?>
+                </button>
+            </div>
 
- 
-    <!-- Delivery Status Dropdown -->
-    <label for="delivery_status" class="mt-3">Update Delivery Status:</label>
-    <select id="delivery_status" class="form-control w-50 mx-auto mt-2" onchange="update_delivery_status()">
-        <option value="pending" <?php echo $deliveryStatus == 'pending' ? 'selected' : ''; ?>>Pending</option>
-        <option value="confirmed" <?php echo $deliveryStatus == 'confirmed' ? 'selected' : ''; ?>>Confirmed</option>
-        <option value="arrived" <?php echo $deliveryStatus == 'arrived' ? 'selected' : ''; ?>>Arrived</option>
-        <option value="delivered" <?php echo $deliveryStatus == 'delivered' ? 'selected' : ''; ?>>Delivered</option>
-        <option value="completed" <?php echo $deliveryStatus == 'completed' ? 'selected' : ''; ?>>Completed</option>
-    </select>
-</div>
-=======
-        <button class="btn btn-primary" id="confirm" type="button" onclick="confirm_order()" <?php echo $orderStatus == 1 ? 'disabled' : '' ?>>Confirm</button>
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-        <button class="btn btn-success" type="button" onclick="print_receipt()">Print Receipt</button>
-        <button class="btn btn-danger" type="button" id="delete_order" onclick="delete_order()">Delete Order</button>
+            <h5 class="mt-4">User Ratings and Feedback</h5>
+            <?php if ($feedbacks): ?>
+                <div class="list-group">
+                    <?php foreach ($feedbacks as $feedback): ?>
+                        <div class="list-group-item">
+                            <h6 class="mb-1">Rating: 
+                                <?php display_star_rating($feedback['rating']); ?> 
+                                (<?php echo htmlspecialchars($feedback['rating']); ?> / 5)
+                            </h6>
+                            <p><?php echo htmlspecialchars($feedback['feedback']); ?></p>
+                            <small>Submitted by: <?php echo htmlspecialchars($feedback['email']); ?></small>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php else: ?>
+                <p>No feedback available yet.</p>
+            <?php endif; ?>
+        </div>
     </div>
->>>>>>> c58447c6c21b25d029365c30c287ce2cb1a6eae5
 </div>
 
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    function confirm_order() {
-        // Existing code for confirming the order
-        Swal.fire({
-            title: 'Confirm Order',
-            text: 'Are you sure you want to confirm this order?',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes, confirm!'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                start_load();
-                $.ajax({
-                    url: 'ajax.php?action=confirm_order',
-                    method: 'POST',
-                    data: { id: '<?php echo $_GET['id'] ?>' },
-                    success: function(resp) {
-                        if (resp == 1) {
-                            Swal.fire('Confirmed!', 'Order has been successfully confirmed.', 'success').then(function() {
-                                location.reload();
-                            });
-                        } else {
-                            Swal.fire('Error!', 'Error confirming order: ' + resp, 'error');
-                        }
-                        end_load();
-                    },
-                    error: function() {
-                        end_load();
-                        Swal.fire('Error!', 'AJAX request failed.', 'error');
-                    }
-                });
-            }
-        });
-    }
-    function update_delivery_status() {
-    var status = $('#delivery_status').val();
-    var orderId = '<?php echo $_GET["id"]; ?>';
-
-    Swal.fire({
-        title: 'Update Delivery Status',
-        text: 'Are you sure you want to update the delivery status?',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Yes, update it!'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            start_load();
-            $.ajax({
-                url: 'ajax.php?action=update_delivery_status',
-                method: 'POST',
-                data: {
-                    id: orderId,
-                    status: status
-                },
-                success: function(resp) {
-                    if (resp == 1) {
-                        Swal.fire('Updated!', 'Delivery status has been updated successfully.', 'success').then(function() {
-                            location.reload();
-                        });
-                    } else {
-                        Swal.fire('Error!', 'Error updating delivery status: ' + resp, 'error');
-                    }
-                    end_load();
-                },
-                error: function() {
-                    end_load();
-                    Swal.fire('Error!', 'AJAX request failed.', 'error');
-                }
-            });
+    // Adjust quantity
+    $('#qty-minus').click(function(){
+        var qty = $('input[name="qty"]').val();
+        if (qty > 1) {
+            $('input[name="qty"]').val(parseInt(qty) - 1);
         }
     });
-}
-    function print_receipt() {
-        // Existing code for printing the receipt
-        var receiptWindow = window.open('', '', 'height=600,width=800,location=no');
-        var logoUrl = 'assets/img/logo.jpg'; // Full URL
 
-        var orderNumber = '<?php echo $order["order_number"]; ?>';
-        var orderDate = '<?php echo $formatted_order_date; ?>';
-        var customerName = '<?php echo $order["name"]; ?>';
-        var address = '<?php echo $order["address"]; ?>';
-        var deliveryMethod = '<?php echo $order["delivery_method"]; ?>';
-        var paymentMethod = '<?php echo $order["payment_method"]; ?>';
-        var totalAmount = '<?php echo number_format($total + $shippingAmount, 2); ?>'; // Total with shipping
+    $('#qty-plus').click(function(){
+        var qty = $('input[name="qty"]').val();
+        $('input[name="qty"]').val(parseInt(qty) + 1);
+    });
 
-        var headerContent = '<div style="text-align: center; margin-bottom: 20px;">' +
-            '<img src="' + logoUrl + '" alt="Logo" style="max-width: 150px;"/>' +
-            '<h3>M&M Cake Ordering</h3>' +
-            '</div>';
+    // Handle "Add to Cart" button click
+    $('#add_to_cart_modal').click(function(){
+        var availability = $(this).data('availability');
         
-        var orderDetailsContent = '<table style="width: 100%; border-collapse: collapse;">' +
-            '<tr><th>Order Number:</th><td>' + orderNumber + '</td></tr>' +
-            '<tr><th>Order Date:</th><td>' + orderDate + '</td></tr>' +
-            '<tr><th>Customer Name:</th><td>' + customerName + '</td></tr>' +
-            '<tr><th>Address:</th><td>' + address + '</td></tr>' +
-            '<tr><th>Delivery Method:</th><td>' + deliveryMethod + '</td></tr>' +
-            '<tr><th>Payment Method:</th><td>' + paymentMethod + '</td></tr>' +
-            '<tr><th>Total Amount:</th><td>' + totalAmount + '</td></tr>' +
-            '</table>';
+        if (!availability) {
+            Swal.fire('Unavailable', 'This product is currently unavailable.', 'warning');
+            return;
+        }
         
-        receiptWindow.document.write('<html><head><title>Receipt</title>');
-        receiptWindow.document.write('</head><body>');
-        receiptWindow.document.write(headerContent);
-        receiptWindow.document.write(orderDetailsContent);
-        receiptWindow.document.write('</body></html>');
-        receiptWindow.document.close();
-        receiptWindow.print();
-    }
-
-    function print_receipt() {
-        // Existing code for printing the receipt
-        var receiptWindow = window.open('', '', 'height=600,width=800,location=no');
-        var logoUrl = 'assets/img/logo.jpg'; // Full URL
-
-        var orderNumber = '<?php echo $order["order_number"]; ?>';
-        var orderDate = '<?php echo $formatted_order_date; ?>';
-        var customerName = '<?php echo $order["name"]; ?>';
-        var address = '<?php echo $order["address"]; ?>';
-        var deliveryMethod = '<?php echo $order["delivery_method"]; ?>';
-        var paymentMethod = '<?php echo $order["payment_method"]; ?>';
-        var totalAmount = '<?php echo number_format($total + $shippingAmount, 2); ?>'; // Total with shipping
-
-        var headerContent = '<div style="text-align: center; margin-bottom: 20px;">' +
-            '<img src="' + logoUrl + '" alt="Logo" style="max-width: 150px;"/>' +
-            '<h3>M&M Cake Ordering</h3>' +
-            '</div>';
-        
-        var orderDetailsContent = '<table style="width: 100%; border-collapse: collapse;">' +
-            '<tr><th>Order Number:</th><td>' + orderNumber + '</td></tr>' +
-            '<tr><th>Order Date:</th><td>' + orderDate + '</td></tr>' +
-            '<tr><th>Customer Name:</th><td>' + customerName + '</td></tr>' +
-            '<tr><th>Address:</th><td>' + address + '</td></tr>' +
-            '<tr><th>Delivery Method:</th><td>' + deliveryMethod + '</td></tr>' +
-            '<tr><th>Payment Method:</th><td>' + paymentMethod + '</td></tr>' +
-            '<tr><th>Total Amount:</th><td>' + totalAmount + '</td></tr>' +
-            '</table>';
-        
-        receiptWindow.document.write('<html><head><title>Receipt</title>');
-        receiptWindow.document.write('</head><body>');
-        receiptWindow.document.write(headerContent);
-        receiptWindow.document.write(orderDetailsContent);
-        receiptWindow.document.write('</body></html>');
-        receiptWindow.document.close();
-        receiptWindow.print();
-    }
-
-    function delete_order() {
-        // Existing code for deleting the order
         Swal.fire({
-            title: 'Delete Order',
-            text: 'Are you sure you want to delete this order?',
-            icon: 'warning',
+            title: 'Add to Cart',
+            text: 'Are you sure you want to add this item to your cart?',
+            icon: 'question',
             showCancelButton: true,
             confirmButtonColor: '#3085d6',
             cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes, delete it!'
+            confirmButtonText: 'Yes, add it!'
         }).then((result) => {
             if (result.isConfirmed) {
-                start_load();
                 $.ajax({
-                    url: 'ajax.php?action=delete_order',
+                    url: 'admin/ajax.php?action=add_to_cart',
                     method: 'POST',
-                    data: { id: '<?php echo $_GET['id'] ?>' },
+                    data: { pid: '<?php echo $product_id ?>', qty: $('input[name="qty"]').val() },
                     success: function(resp) {
                         if (resp == 1) {
-                            Swal.fire('Deleted!', 'Order has been deleted.', 'success').then(function() {
-                                location.reload();
-                            });
+                            Swal.fire('Added!', 'The product has been added to your cart.', 'success');
                         } else {
-                            Swal.fire('Error!', 'Error deleting order: ' + resp, 'error');
+                            Swal.fire('Error!', 'There was an error adding the product to your cart.', 'error');
                         }
-                        end_load();
-                    },
-                    error: function() {
-                        end_load();
-                        Swal.fire('Error!', 'AJAX request failed.', 'error');
                     }
                 });
             }
         });
-    }
+    });
+
+    // Ensure button state is correctly set on page load
+    $(document).ready(function() {
+        var availability = $('#add_to_cart_modal').data('availability');
+        if (!availability) {
+            $('#add_to_cart_modal').prop('disabled', true).addClass('disabled');
+        }
+    });
 </script>
 </body>
 </html>
