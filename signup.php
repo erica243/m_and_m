@@ -34,6 +34,17 @@
                 // Here, you can proceed with storing or processing the sanitized input.
             }
         }
+        // Fetch all addresses from the shipping_info table
+$addresses = [];
+$stmt = $conn->prepare("SELECT address FROM shipping_info");
+$stmt->execute();
+$result = $stmt->get_result();
+
+// Store all addresses in the addresses array
+while ($row = $result->fetch_assoc()) {
+    $addresses[] = $row['address'];
+}
+
         ?>
 <div class="container-fluid">
 	<form action="" id="signup-frm">
@@ -50,10 +61,15 @@
 			<label for="" class="control-label">Contact</label>
 			<input type="text" name="mobile" required="" class="form-control" maxlength="11">
 		</div>
-		<div class="form-group">
-			<label for="" class="control-label">Address</label>
-			<textarea cols="30" rows="3" name="address" required="" class="form-control"></textarea>
-		</div>
+        <div class="form-group">
+            <label for="" class="control-label">Address</label>
+            <select name="address" class="form-control" required>
+                <option value="">Select Address</option>
+                <?php foreach ($addresses as $address): ?>
+                    <option value="<?php echo htmlspecialchars($address); ?>"><?php echo htmlspecialchars($address); ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
 		<div class="form-group">
 			<label for="" class="control-label">Email</label>
 			<input type="email" name="email" required="" class="form-control">

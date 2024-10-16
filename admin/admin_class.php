@@ -255,6 +255,17 @@ Class Action {
             return 1;    
     }
     function save_order() {
+        // Log incoming data
+        error_log("Order details: " . json_encode($_POST));
+    
+        // Validate payment method
+        $valid_payment_methods = ['cash', 'gcash']; // Add other valid methods here
+        $payment_method = $this->db->real_escape_string($_POST['payment_method']);
+        if (!in_array($payment_method, $valid_payment_methods)) {
+            error_log("Invalid payment method: " . $payment_method);
+            return "Error: Invalid payment method";
+        }
+    
         // Use mysqli_real_escape_string to escape all inputs
         $order_number = rand(1000, 9999); // Example random order number
         $order_date = date('Y-m-d H:i:s'); // Current date and time
@@ -264,44 +275,37 @@ Class Action {
         $address = $this->db->real_escape_string($_POST['address']);
         $mobile = $this->db->real_escape_string($_POST['mobile']);
         $email = $this->db->real_escape_string($_POST['email']);
-        $payment_method = $this->db->real_escape_string($_POST['payment_method']);
         $transaction_id = isset($_POST['transaction_id']) ? $this->db->real_escape_string($_POST['transaction_id']) : '';
+    
+        // Log payment method for debugging
+        error_log("Payment Method: " . $payment_method);
     
         // Handle pickup date and time
         $pickup_date = isset($_POST['pickup_date']) && !empty($_POST['pickup_date']) ? $this->db->real_escape_string($_POST['pickup_date']) : 'N/A';
         $pickup_time = isset($_POST['pickup_time']) && !empty($_POST['pickup_time']) ? $this->db->real_escape_string($_POST['pickup_time']) : 'N/A';
     
-        // Handle payment proof upload if required for G-Cash
-        $payment_proof_path = '';
-        if ($payment_method === 'gcash' && isset($_FILES['payment_proof']) && $_FILES['payment_proof']['error'] == UPLOAD_ERR_OK) {
-            $upload_dir = 'uploads/payment_proof/';
-            if (!is_dir($upload_dir)) {
-                mkdir($upload_dir, 0777, true);
-            }
-    
-            $file_name = time() . '_' . basename($_FILES['payment_proof']['name']);
-            $target_file = $upload_dir . $file_name;
-    
-            // Move the uploaded file
-            if (move_uploaded_file($_FILES['payment_proof']['tmp_name'], $target_file)) {
-                $payment_proof_path = $target_file;
-            } else {
-                return "Error: Could not upload payment proof.";
-            }
-        }
-    
         // Prepare SQL query
-        $sql = "INSERT INTO orders (order_number, order_date, delivery_method, name, address, mobile, email, payment_method, transaction_id, pickup_date, pickup_time, payment_proof) 
-                VALUES ('$order_number', '$order_date', '$delivery_method', '$first_name $last_name', '$address', '$mobile', '$email', '$payment_method', '$transaction_id', 
-                '$pickup_date', '$pickup_time', '$payment_proof_path')";
+        $sql = "INSERT INTO orders (order_number, order_date, delivery_method, name, address, mobile, email, payment_method, transaction_id, pickup_date, pickup_time)
+                VALUES ('$order_number', '$order_date', '$delivery_method', '$first_name $last_name', '$address', '$mobile', '$email', '$payment_method', '$transaction_id',
+                '$pickup_date', '$pickup_time')";
+    
+        // Log SQL query for debugging
+        error_log("SQL Query: " . $sql);
     
         // Execute query
         $save = $this->db->query($sql);
         if (!$save) {
+            error_log("SQL Error: " . $this->db->error);
             return "Error: " . $this->db->error;
         }
     
         $id = $this->db->insert_id; // Get the last inserted ID
+    
+        // Check if user is logged in
+        if (!isset($_SESSION['login_user_id'])) {
+            error_log("User not logged in");
+            return "Error: User not logged in";
+        }
     
         $qry = $this->db->query("SELECT * FROM cart WHERE user_id = " . $_SESSION['login_user_id']);
         while ($row = $qry->fetch_assoc()) {
@@ -311,6 +315,7 @@ Class Action {
     
             $save2 = $this->db->query($sql2);
             if (!$save2) {
+                error_log("Error in order_list: " . $this->db->error);
                 return "Error: " . $this->db->error;
             }
     
@@ -348,47 +353,47 @@ Class Action {
             return 1;
         }
     }
-    public function update_delivery_status($order_id, $new_status) {
-        // Validate new status
-        $allowed_statuses = ['pending', 'confirmed', 'delivered', 'arrived', 'completed'];
-        if (!in_array($new_status, $allowed_statuses)) {
-            return "Invalid delivery status.";
+        public function update_delivery_status($order_id, $new_status) {
+            // Validate new status
+            $allowed_statuses = ['pending', 'confirmed', 'delivered', 'arrived', 'completed'];
+            if (!in_array($new_status, $allowed_statuses)) {
+                return "Invalid delivery status.";
+            }
+        
+            // Prepare the SQL query
+            $sql = "UPDATE orders SET delivery_status = ? WHERE id = ?";
+            $stmt = $this->db->prepare($sql);
+        
+            if (!$stmt) {
+                return "Error preparing statement: " . $this->db->error;
+            }
+        
+            // Bind parameters
+            $stmt->bind_param('si', $new_status, $order_id);
+        
+            // Log the SQL query for debugging
+            error_log("SQL Query: " . $sql); // Log the query
+        
+            // Execute the statement
+            if (!$stmt->execute()) {
+                return "Error updating delivery status: " . $stmt->error; // Return error if the execution fails
+            }
+        
+            // Log successful update
+            error_log("Delivery status updated for order ID $order_id to '$new_status'.");
+        
+            return 1; // Return success code
         }
-    
-        // Prepare the SQL query
-        $sql = "UPDATE orders SET delivery_status = ? WHERE id = ?";
-        $stmt = $this->db->prepare($sql);
-    
-        if (!$stmt) {
-            return "Error preparing statement: " . $this->db->error;
+        
+        function delete_order() {
+            global $conn;
+            $orderId = $_POST['id'];
+            if (isset($orderId)) {
+                $qry = $conn->query("DELETE FROM orders WHERE id = '$orderId'");
+                return $qry ? 1 : 0; // Return 1 on success, 0 on failure
+            }
+            return 0; // In case id is not set
         }
-    
-        // Bind parameters
-        $stmt->bind_param('si', $new_status, $order_id);
-    
-        // Log the SQL query for debugging
-        error_log("SQL Query: " . $sql); // Log the query
-    
-        // Execute the statement
-        if (!$stmt->execute()) {
-            return "Error updating delivery status: " . $stmt->error; // Return error if the execution fails
-        }
-    
-        // Log successful update
-        error_log("Delivery status updated for order ID $order_id to '$new_status'.");
-    
-        return "Delivery status updated successfully."; // Return success message
     }
-}
-    function delete_order() {
-        global $conn;
-        $orderId = $_POST['id'];
-        if (isset($orderId)) {
-            $qry = $conn->query("DELETE FROM orders WHERE id = '$orderId'");
-            return $qry ? 1 : 0; // Return 1 on success, 0 on failure
-        }
-        return 0; // In case id is not set
-    }
     
-    ?>
-    
+    ?>  
