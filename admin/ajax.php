@@ -197,7 +197,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_GET['action'] == 'update_delivery
     $stmt->close();
 }
 
-
 if (isset($_POST['user_id'])) {
     $user_id = $_POST['user_id'];
 

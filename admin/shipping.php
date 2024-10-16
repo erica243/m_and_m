@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -50,7 +49,7 @@
             background-color: #fff;
         }
 
-        input[type="number"] {
+        input[type="text"], input[type="number"] {
             width: 100%;
             padding: 8px;
             border: 1px solid #ccc;
@@ -86,7 +85,7 @@
                 font-size: 14px;
             }
 
-            input[type="number"] {
+            input[type="text"], input[type="number"] {
                 padding: 6px;
             }
 
@@ -94,44 +93,144 @@
                 padding: 10px;
             }
         }
+
+        /* Success message styling */
+        .success-message {
+            text-align: center;
+            color: green;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+
+        /* Error message styling */
+        .error-message {
+            text-align: center;
+            color: red;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+
+        /* Results styling */
+        .results {
+            margin: 20px 0;
+            text-align: center;
+        }
+
     </style>
+
+    <!-- SweetAlert2 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 </head>
 
 <body>
 
-    <h1>Set Shipping Amounts</h1>
+<h1>Set Shipping Amounts</h1>
 
-    <?php
-    include 'db_connect.php'; // Database connection
+<?php
+include 'db_connect.php'; // Database connection
 
-    // Fetch unique addresses
-    $query = "SELECT DISTINCT address FROM user_info"; // Adjust the column name as needed
-    $result = $conn->query($query);
+$success_message = ""; // Initialize success message variable
+$error_message = ""; // Initialize error message variable
 
-    if ($result->num_rows > 0) {
-        echo "<form action='process_shipping.php' method='POST'>"; // Action page to process shipping amounts
-        echo "<table>";
-        echo "<tr><th>Address</th><th>Shipping Amount</th></tr>";
+// Initialize an array to hold shipping amounts for display
+$submitted_shipping_amounts = [];
 
-        // Output unique addresses
-        while ($row = $result->fetch_assoc()) {
-            $address = htmlspecialchars($row['address']); // Sanitize output
-            echo "<tr>";
-            echo "<td>$address</td>";
-            echo "<td><input type='number' name='shipping_amount[$address]' placeholder='Enter amount' required></td>";
-            echo "</tr>";
-        }
-        
-        echo "</table>";
-        echo "<input type='submit' value='Save Shipping Amounts'>";
-        echo "</form>";
+// Check if form has been submitted
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $address = $conn->real_escape_string($_POST['address']); // Get and sanitize address input
+    $amount = floatval($_POST['shipping_amount']); // Get and sanitize shipping amount input
+
+    // Insert or update the shipping amount in your database
+    $query = "INSERT INTO shipping_info (address, shipping_amount) VALUES ('$address', $amount)
+              ON DUPLICATE KEY UPDATE shipping_amount = $amount"; // Adjust table and column names as needed
+
+    if (!$conn->query($query)) {
+        $error_message = "Error updating shipping amount for address: $address - " . $conn->error;
     } else {
-        echo "<p>No unique addresses found.</p>";
+        // Store the address and amount for displaying results
+        $submitted_shipping_amounts[$address] = $amount;
+        $success_message = "Shipping amount saved successfully!";
     }
+}
 
-    $conn->close();
-    ?>
+// Fetch all existing shipping records
+$query = "SELECT address, shipping_amount FROM shipping_info";
+$result = $conn->query($query);
+
+// Store all shipping amounts in an array
+$all_shipping_amounts = [];
+if ($result && $result->num_rows > 0) {
+    while ($row = $result->fetch_assoc()) {
+        $all_shipping_amounts[$row['address']] = $row['shipping_amount'];
+    }
+}
+
+?>
+
+<form id='shippingForm' action='' method='POST'> <!-- Action set to same page -->
+    <table>
+        <tr>
+            <th>Address</th>
+            <th>Shipping Amount</th>
+        </tr>
+        <tr>
+            <td><input type="text" name="address" placeholder="Enter address" required></td>
+            <td><input type="number" name="shipping_amount" placeholder="Enter amount" required></td>
+        </tr>
+    </table>
+    <input type='submit' value='Save Shipping Amount'>
+</form>
+
+<?php
+// Display success or error message
+if ($error_message): ?>
+    <div class="error-message"><?php echo $error_message; ?></div>
+<?php endif; ?>
+
+<?php if ($success_message): ?>
+    <div class="success-message"><?php echo $success_message; ?></div>
+<?php endif; ?>
+
+<!-- Display all shipping amounts -->
+<?php if (!empty($all_shipping_amounts)): ?>
+    <div class="results">
+        
+        <table>
+            <tr><th>Address</th><th>Shipping Amount</th></tr>
+            <?php foreach ($all_shipping_amounts as $address => $amount): ?>
+                <tr>
+                    <td><?php echo htmlspecialchars($address); ?></td>
+                    <td><?php echo htmlspecialchars($amount); ?></td>
+                </tr>
+            <?php endforeach; ?>
+        </table>
+    </div>
+<?php endif; ?>
+
+<script>
+    // Add SweetAlert confirmation before submitting the form
+    document.getElementById('shippingForm').addEventListener('submit', function(e) {
+        e.preventDefault(); // Prevent form from submitting immediately
+
+        // Show SweetAlert confirmation
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "Do you want to save this shipping amount?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, save it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Submit the form if confirmed
+                this.submit();
+            }
+        });
+    });
+</script>
 
 </body>
-
 </html>
+

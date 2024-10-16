@@ -377,9 +377,8 @@ Class Action {
         // Log successful update
         error_log("Delivery status updated for order ID $order_id to '$new_status'.");
     
-        return "Delivery status updated successfully."; // Return success message
+        return 1; // Return success code
     }
-}
     function delete_order() {
         global $conn;
         $orderId = $_POST['id'];
