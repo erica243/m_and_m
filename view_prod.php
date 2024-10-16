@@ -33,7 +33,7 @@ $avg_rating = $avg_rating ? number_format($avg_rating, 1) : 'No ratings yet';
 $feedback_qry = $conn->query("
     SELECT pr.rating, pr.feedback, ui.email 
     FROM product_ratings pr
-    JOIN user_info ui ON pr.user_id = ui.user_id
+    JOIN user_info ui ON pr.user = ui.user
     WHERE pr.product_id = $product_id
 ");
 
