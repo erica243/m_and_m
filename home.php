@@ -40,7 +40,7 @@ $page_btn_count = ceil($all_menu / $limit);
             <div class="col-lg-10 align-self-center mb-4 page-title">
             <h1 class="text-white">
     Welcome to <?php echo htmlspecialchars(isset($_SESSION['setting_name']) ? $_SESSION['setting_name'] : 'M&M Cake Ordering System'); ?>
-</h1>
+</h1> 
 
     <hr class="divider my-4 bg-dark" />
     <a class="btn btn-dark bg-black btn-xl js-scroll-trigger" href="#menu">Order Now</a>
