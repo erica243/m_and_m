@@ -35,7 +35,7 @@ $feedback_qry = $conn->query("
     FROM product_ratings pr
     JOIN user_info ui ON pr.user_id = ui.user_id
     WHERE pr.product_id = $product_id
-");
+")
 
 $feedbacks = $feedback_qry->fetch_all(MYSQLI_ASSOC);
 
