@@ -37,7 +37,7 @@ $feedback_qry = $conn->query("
     WHERE pr.product_id = $product_id
 ");
 
-$feedbacks = $feedback_qry->fetch_all(MYSQLI_ASSOC);
+$feedback = $feedback_qry->fetch_all(MYSQLI_ASSOC);
 
 // Check product availability
 $availability = $qry['status']; // Assuming 'status' is a boolean or 1/0
