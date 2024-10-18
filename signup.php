@@ -126,6 +126,12 @@ $conn->close();
             </div>
             <small id="password-strength-text" class="form-text mt-2"></small>
         </div>
+        <div class="form-group form-check">
+            <input type="checkbox" class="form-check-input" id="terms" required>
+            <label class="form-check-label" for="terms">
+                I agree to the <a href="terms_and_conditions.php" target="_blank">Terms and Conditions</a>
+            </label>
+        </div>
         <button type="submit" class="btn btn-info btn-sm">Create</button>
     </form>
 </div>
@@ -136,70 +142,117 @@ $conn->close();
     }
 </style>
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-$(document).ready(function() {
-    // Password visibility toggle
-    $('#show-password').on('click', function() {
-        var passwordField = $('#password');
-        if ($(this).is(':checked')) {
-            passwordField.attr('type', 'text');
-        } else {
-            passwordField.attr('type', 'password');
-        }
+    $('#signup-frm').submit(function (e) {
+        e.preventDefault();
+        $('#signup-frm button[type="submit"]').attr('disabled', true).html('Saving...');
+
+        $.ajax({
+            url: 'admin/ajax.php?action=signup',
+            method: 'POST',
+            data: $(this).serialize(),
+            error: err => {
+                console.log(err);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'An error occurred while saving. Please try again.',
+                });
+                $('#signup-frm button[type="submit"]').removeAttr('disabled').html('Create');
+            },
+            success: function (resp) {
+                if (resp == 1) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        text: 'Account created successfully!',
+                        showConfirmButton: false,
+                        timer: 1500
+                    }).then(() => {
+                        location.href = '<?php echo isset($_GET['redirect']) ? $_GET['redirect'] : 'index.php?page=home' ?>';
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Email already exists.',
+                    });
+                    $('#signup-frm button[type="submit"]').removeAttr('disabled').html('Create');
+                }
+            }
+        });
     });
 
-    // Password strength checker
-    function checkPasswordStrength(password) {
-        var strength = 0;
-        var feedback = [];
+    $(document).ready(function() {
+        // Password visibility toggle
+        $('#show-password').on('click', function() {
+            var passwordField = $('#password');
+            if ($(this).is(':checked')) {
+                passwordField.attr('type', 'text');
+            } else {
+                passwordField.attr('type', 'password');
+            }
+        });
 
-        // Check length
-        if (password.length >= 8) strength += 1;
-        else feedback.push("be at least 8 characters long");
+        // Password strength checker
+        function checkPasswordStrength(password) {
+            var strength = 0;
+            var feedback = [];
 
-        // Check for uppercase letters
-        if (password.match(/[A-Z]/)) strength += 1;
-        else feedback.push("include uppercase letters");
+            // Check length
+            if (password.length >= 8) strength += 1;
+            else feedback.push("be at least 8 characters long");
 
-        // Check for lowercase letters
-        if (password.match(/[a-z]/)) strength += 1;
-        else feedback.push("include lowercase letters");
+            // Check for uppercase letters
+            if (password.match(/[A-Z]/)) strength += 1;
+            else feedback.push("include uppercase letters");
 
-        // Check for numbers
-        if (password.match(/\d/)) strength += 1;
-        else feedback.push("include numbers");
+            // Check for lowercase letters
+            if (password.match(/[a-z]/)) strength += 1;
+            else feedback.push("include lowercase letters");
 
-        // Check for symbols
-        if (password.match(/[^a-zA-Z\d]/)) strength += 1;
-        else feedback.push("include symbols");
+            // Check for numbers
+            if (password.match(/\d/)) strength += 1;
+            else feedback.push("include numbers");
 
-        return { strength: strength, feedback: feedback };
-    }
+            // Check for symbols
+            if (password.match(/[^a-zA-Z\d]/)) strength += 1;
+            else feedback.push("include symbols");
 
-    $('#password').on('input', function() {
-        var password = $(this).val();
-        var result = checkPasswordStrength(password);
-
-        // Update progress bar
-        var percent = (result.strength / 5) * 100;
-        $('#password-strength-meter .progress-bar').css('width', percent + '%').attr('aria-valuenow', percent);
-
-        // Update feedback text
-        var strengthText;
-        switch(result.strength) {
-            case 0:
-            case 1:
-                strengthText = 'Weak password. It must ' + result.feedback.join(', ') + '.'; break;
-            case 2:
-                strengthText = 'Fair password. It must ' + result.feedback.join(', ') + '.'; break;
-            case 3:
-                strengthText = 'Good password. It could be stronger.'; break;
-            case 4:
-            case 5:
-                strengthText = 'Strong password.'; break;
+            return { strength: strength, feedback: feedback };
         }
-        $('#password-strength-text').text(strengthText);
+
+        $('#password').on('input', function() {
+            var password = $(this).val();
+            var result = checkPasswordStrength(password);
+
+            // Update progress bar
+            var percent = (result.strength / 5) * 100;
+            $('#password-strength-meter .progress-bar').css('width', percent + '%').attr('aria-valuenow', percent);
+
+            // Update feedback text
+            var strengthText;
+            switch (result.strength) {
+                case 0:
+                case 1:
+                    strengthText = 'Very Weak';
+                    break;
+                case 2:
+                    strengthText = 'Weak';
+                    break;
+                case 3:
+                    strengthText = 'Moderate';
+                    break;
+                case 4:
+                    strengthText = 'Strong';
+                    break;
+                case 5:
+                    strengthText = 'Very Strong';
+                    break;
+            }
+            $('#password-strength-text').text(strengthText + ' (' + result.feedback.join(', ') + ')');
+        });
     });
-});
 </script>

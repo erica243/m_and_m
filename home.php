@@ -33,31 +33,38 @@ $page_btn_count = ceil($all_menu / $limit);
     <script src="path/to/sweetalert2.all.min.js"></script>
 
     <style>
-        /* Styling for the steps section */
-        .steps {
-            display: flex;
-            justify-content: center;
-            margin-top: 20px;
-        }
+       .steps {
+        display: flex;
+        justify-content: center;
+        margin-top: 20px;
+    }
 
-        .step-item {
-            text-align: center;
-            color: white;
-            opacity: 0;
-            transform: translateY(20px);
-            animation: slideIn 0.5s forwards;
-        }
+    .step-item {
+        text-align: center;
+        color: white;
+        opacity: 0;
+        transform: translateY(20px);
+        animation: slideIn 0.5s forwards;
+        margin: 0 15px; /* Add some horizontal spacing between steps */
+    }
 
-        .step-item h4 {
-            font-size: 1.5rem;
-            margin-top: 10px;
-        }
+    .step-item h4 {
+        font-size: 2rem; /* Title font size */
+        margin-top: 10px;
+    }
 
-        .step-item i {
-            font-size: 2.5rem;
-            color: white;
-            margin-bottom: 10px;
-        }
+    .step-item i {
+        font-size: 3rem; /* Increased icon size */
+        color: white;
+        margin-bottom: 10px;
+        transition: transform 0.3s; /* Add transition for hover effect */
+    }
+
+    .step-item i:hover {
+        transform: scale(1.1); /* Slightly enlarge the icon on hover */
+    }
+
+
 
         @keyframes slideIn {
             from {
@@ -127,22 +134,20 @@ $page_btn_count = ceil($all_menu / $limit);
                         Welcome to <?php echo htmlspecialchars(isset($_SESSION['setting_name']) ? $_SESSION['setting_name'] : 'M&M Cake Ordering System'); ?>
                     </h1>
                     
-                    <!-- Steps Section -->
-                    <div class="steps">
-                        <div class="step-item" style="animation-delay: 0.1s;">
-                            <i class="fas fa-search fa-bounce"></i>
-                            <h4>Browse</h4>
-                        </div>
-                        <br> <br><br><hr>
-                        <div class="step-item" style="animation-delay: 0.2s;">
-                            <i class="fa fa-shopping-cart fa-bounce"></i>
-                            <h4>Order</h4>
-                        </div><hr>
-                        <div class="step-item" style="animation-delay: 0.3s;">
-                            <i class="fa fa-truck fa-run"></i>
-                            <h4>Deliver</h4>
-                        </div>
-                    </div>
+                    <div class="steps d-flex justify-content-around mt-5">
+            <div class="step-item">
+                <i class="fas fa-search"></i>
+                <h4>Browse</h4>
+            </div>
+            <div class="step-item">
+                <i class="fas fa-shopping-cart"></i>
+                <h4>Order</h4>
+            </div>
+            <div class="step-item">
+                <i class="fas fa-truck"></i>
+                <h4>Deliver</h4>
+            </div>
+        </div>
 
                     <hr class="divider my-4 bg-dark" />
                     <a class="btn btn-dark bg-black btn-xl js-scroll-trigger" href="#menu">Order Now</a>
