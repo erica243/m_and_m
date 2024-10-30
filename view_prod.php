@@ -40,9 +40,9 @@ $feedback_qry = $conn->query("
 $feedbacks = $feedback_qry->fetch_all(MYSQLI_ASSOC);
 
 // Check product availability
-$availability = $qry['status']; // Assuming 'status' is a boolean or 1/0
+$availability = $qry['status'];
+$stock_quantity = $qry['stock']; // Stock quantity
 
-// Function to display star ratings
 function display_star_rating($rating) {
     $full_stars = floor($rating);
     $half_star = ($rating - $full_stars >= 0.5) ? 1 : 0;
@@ -68,18 +68,9 @@ function display_star_rating($rating) {
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <style>
-        .star {
-            cursor: pointer;
-            font-size: 2rem;
-            color: #ddd;
-        }
-        .star.selected {
-            color: #ffd700;
-        }
-        .btn.disabled {
-            opacity: 0.65;
-            cursor: not-allowed;
-        }
+        .star { cursor: pointer; font-size: 2rem; color: #ddd; }
+        .star.selected { color: #ffd700; }
+        .btn.disabled { opacity: 0.65; cursor: not-allowed; }
     </style>
 </head>
 <body>
@@ -90,6 +81,8 @@ function display_star_rating($rating) {
             <h5 class="card-title"><?php echo htmlspecialchars($qry['name']) ?></h5>
             <p class="card-text"><?php echo htmlspecialchars($qry['description']) ?></p>
             <p class="card-text">Price: <?php echo number_format($qry['price'], 2) ?></p>
+            <p class="card-text">Stock: <span id="stock_display"><?php echo $stock_quantity; ?></span> available</p>
+            
             <p class="card-text">Average Rating: 
                 <?php if ($avg_rating !== 'No ratings yet'): ?>
                     <?php display_star_rating($avg_rating); ?> (<?php echo $avg_rating; ?> / 5)
@@ -97,55 +90,63 @@ function display_star_rating($rating) {
                     No ratings yet
                 <?php endif; ?>
             </p>
-            <p class="card-text <?php echo $availability ? '' : 'text-danger' ?>"><?php echo $availability ? 'In Stock' : 'Unavailable' ?></p>
+            
             <div class="row mb-3">
-                <div class="col-md-2"><label class="control-label">Qty</label></div>
+                <div class="col-md-2">
+                    <label class="control-label">Qty</label>
+                </div>
                 <div class="input-group col-md-7">
                     <div class="input-group-prepend">
-                        <button class="btn btn-outline-secondary" type="button" id="qty-minus"><span class="fa fa-minus"></span></button>
+                        <button class="btn btn-outline-secondary" type="button" id="qty-minus" <?php echo $stock_quantity <= 0 ? 'disabled' : ''; ?>>
+                            <span class="fa fa-minus"></span>
+                        </button>
                     </div>
-                    <input type="number" readonly value="1" min="1" class="form-control text-center" name="qty">
+                    <input type="number" id="qty-input" readonly value="1" min="1" max="<?php echo $stock_quantity; ?>" class="form-control text-center" name="qty" <?php echo $stock_quantity <= 0 ? 'disabled' : ''; ?>>
                     <div class="input-group-append">
-                        <button class="btn btn-outline-dark" type="button" id="qty-plus"><span class="fa fa-plus"></span></button>
+                        <button class="btn btn-outline-dark" type="button" id="qty-plus" <?php echo $stock_quantity <= 0 ? 'disabled' : ''; ?>>
+                            <span class="fa fa-plus"></span>
+                        </button>
                     </div>
                 </div>
             </div>
+            
             <div class="text-center mb-4">
                 <button 
-                    class="btn btn-outline-dark btn-sm btn-block <?php echo !$availability ? 'disabled' : ''; ?>" 
+                    class="btn btn-outline-dark btn-sm btn-block <?php echo !$availability || $stock_quantity <= 0 ? 'disabled' : ''; ?>" 
                     id="add_to_cart_modal" 
                     data-availability="<?php echo $availability; ?>" 
-                    <?php echo !$availability ? 'disabled' : ''; ?>
+                    data-stock="<?php echo $stock_quantity; ?>"
+                    <?php echo !$availability || $stock_quantity <= 0 ? 'disabled' : ''; ?>
                 >
-                    <i class="fa fa-cart-plus"></i> <?php echo $availability ? 'Add to Cart' : 'Unavailable'; ?>
+                    <i class="fa fa-cart-plus"></i> <?php echo ($availability && $stock_quantity > 0) ? 'Add to Cart' : 'Unavailable'; ?>
                 </button>
             </div>
-
-            <h5 class="mt-4">User Ratings and Feedback</h5>
-            <?php if ($feedbacks): ?>
-                <div class="list-group">
-                    <?php foreach ($feedbacks as $feedback): ?>
-                        <div class="list-group-item">
-                            <h6 class="mb-1">Rating: 
-                                <?php display_star_rating($feedback['rating']); ?> 
-                                (<?php echo htmlspecialchars($feedback['rating']); ?> / 5)
-                            </h6>
-                            <p><?php echo htmlspecialchars($feedback['feedback']); ?></p>
-                            <small>Submitted by: <?php echo htmlspecialchars($feedback['email']); ?></small>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-            <?php else: ?>
-                <p>No feedback available yet.</p>
-            <?php endif; ?>
         </div>
     </div>
+
+    <h5 class="mt-4">User Ratings and Feedback</h5>
+    <?php if ($feedbacks): ?>
+        <div class="list-group">
+            <?php foreach ($feedbacks as $feedback): ?>
+                <div class="list-group-item">
+                    <h6 class="mb-1">Rating: 
+                        <?php display_star_rating($feedback['rating']); ?> 
+                        (<?php echo htmlspecialchars($feedback['rating']); ?> / 5)
+                    </h6>
+                    <p><?php echo htmlspecialchars($feedback['feedback']); ?></p>
+                    <small>Submitted by: <?php echo htmlspecialchars($feedback['email']); ?></small>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    <?php else: ?>
+        <p>No feedback available yet.</p>
+    <?php endif; ?>
 </div>
 
 <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
-    // Adjust quantity
     $('#qty-minus').click(function(){
         var qty = $('input[name="qty"]').val();
         if (qty > 1) {
@@ -155,15 +156,20 @@ function display_star_rating($rating) {
 
     $('#qty-plus').click(function(){
         var qty = $('input[name="qty"]').val();
-        $('input[name="qty"]').val(parseInt(qty) + 1);
+        var maxQty = <?php echo $stock_quantity; ?>;
+        if (qty < maxQty) {
+            $('input[name="qty"]').val(parseInt(qty) + 1);
+        } else {
+            Swal.fire('Limit Reached', 'You have reached the maximum quantity available.', 'warning');
+        }
     });
 
-    // Handle "Add to Cart" button click
     $('#add_to_cart_modal').click(function(){
         var availability = $(this).data('availability');
+        var stock = $(this).data('stock');
         
-        if (!availability) {
-            Swal.fire('Unavailable', 'This product is currently unavailable.', 'warning');
+        if (!availability || stock <= 0) {
+            Swal.fire('Unavailable', 'This product is currently unavailable or out of stock.', 'warning');
             return;
         }
         
@@ -183,6 +189,9 @@ function display_star_rating($rating) {
                     data: { pid: '<?php echo $product_id ?>', qty: $('input[name="qty"]').val() },
                     success: function(resp) {
                         if (resp == 1) {
+                            let currentStock = parseInt($('#stock_display').text());
+                            let qty = parseInt($('input[name="qty"]').val());
+                            $('#stock_display').text(currentStock - qty); // Update stock display on the page
                             Swal.fire('Added!', 'The product has been added to your cart.', 'success');
                         } else {
                             Swal.fire('Error!', 'There was an error adding the product to your cart.', 'error');
@@ -191,14 +200,6 @@ function display_star_rating($rating) {
                 });
             }
         });
-    });
-
-    // Ensure button state is correctly set on page load
-    $(document).ready(function() {
-        var availability = $('#add_to_cart_modal').data('availability');
-        if (!availability) {
-            $('#add_to_cart_modal').prop('disabled', true).addClass('disabled');
-        }
     });
 </script>
 </body>
