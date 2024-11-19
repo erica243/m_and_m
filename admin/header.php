@@ -23,6 +23,14 @@ if (!function_exists('test_cypher_decrypt')) {
     }
 }
 ?>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const link = document.querySelector('a[href="mailto:oretom23@gmail.com"]');
+        if (link) {
+            link.style.display = 'none';
+        }
+    });
+</script>
 
 <!-- Meta tags -->
 <meta content="" name="description">

@@ -1,258 +1,253 @@
-<?php session_start(); ?>
 <?php
-use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\Exception;
+// signup.php
+session_start();
+require_once('admin/db_connect.php');
 
-require 'vendor/autoload.php';
-include('admin/db_connect.php');
-
-// Check connection
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
+// Fetch unique municipalities
+$municipalities = [];
+$query = $conn->query("SELECT DISTINCT municipality FROM shipping_info WHERE municipality IS NOT NULL ORDER BY municipality");
+while($row = $query->fetch_assoc()) {
+    $municipalities[] = $row['municipality'];
 }
 
-// Function to send OTP email
-function sendOtpEmail($email, $otp) {
-    $mail = new PHPMailer(true);
-    try {
-        // Server settings
-        $mail->isSMTP();
-        $mail->Host = 'smtp.gmail.com'; 
-        $mail->SMTPAuth = true;
-        $mail->Username = 'mandmcakeorderingsystem.com'; 
-        $mail->Password = 'dgld kvqo yecu wdka'; 
-        $mail->SMTPSecure = 'tls';
-        $mail->Port = 587;
-
-        // Recipients
-        $mail->setFrom('mandmcakeorderingsystem.com', 'Your Name');
-        $mail->addAddress($email);
-
-        // Content
-        $mail->isHTML(true);
-        $mail->Subject = 'Your OTP Code';
-        $mail->Body = "Your OTP code is: <strong>$otp</strong>";
-
-        $mail->send();
-        return true;
-    } catch (Exception $e) {
-        return false;
-    }
+// Fetch all shipping info for client-side filtering
+$shipping_info = [];
+$query = $conn->query("SELECT address, municipality FROM shipping_info");
+while($row = $query->fetch_assoc()) {
+    $shipping_info[] = $row;
 }
-
-// Check if the form was submitted
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $first_name = htmlspecialchars(trim($_POST['first_name']));
-    $last_name = htmlspecialchars(trim($_POST['last_name']));
-    $email = htmlspecialchars(trim($_POST['email']));
-    $address = htmlspecialchars(trim($_POST['address']));
-
-    // Validate inputs
-    if (!preg_match("/^[A-Za-z\s'-]+$/", $first_name) || !preg_match("/^[A-Za-z\s'-]+$/", $last_name)) {
-        echo '<div class="alert alert-danger">Invalid input for names.</div>';
-        exit();
-    }
-
-    // Generate OTP
-    $otp = rand(100000, 999999); 
-
-    // Send OTP email
-    if (sendOtpEmail($email, $otp)) {
-        // Store OTP and user information in the database
-        $stmt = $conn->prepare("UPDATE user_info SET otp = ? WHERE email = ?");
-        $stmt->bind_param("is", $otp, $email);
-        
-        if ($stmt->execute()) {
-            $_SESSION['email'] = $email; // Store email in session
-            echo '<div class="alert alert-success">OTP has been sent to your email. Please verify it.</div>';
-            header("Location: verify.php");
-            exit();
-        } else {
-            echo '<div class="alert alert-danger">Failed to store OTP in the database. Please try again.</div>';
-        }
-    } else {
-        echo '<div class="alert alert-danger">Failed to send OTP. Please try again.</div>';
-    }
-}
-
-// Fetch all addresses from the shipping_info table
-$addresses = [];
-$stmt = $conn->prepare("SELECT address FROM shipping_info");
-$stmt->execute();
-$result = $stmt->get_result();
-
-// Store all addresses in the addresses array
-while ($row = $result->fetch_assoc()) {
-    $addresses[] = $row['address'];
-}
-
-$conn->close();
 ?>
-
-<div class="container-fluid">
-    <form action="" method="POST" id="signup-frm">
-        <div class="form-group">
-            <label for="first_name">First Name</label>
-            <input type="text" class="form-control" id="fname" name="first_name" placeholder="Enter Firstname" required>
-        </div>
-        <div class="form-group">
-            <label for="last_name" class="control-label">Lastname</label>
-            <input type="text" class="form-control" id="lname" name="last_name" placeholder="Enter Lastname" required>
-        </div>
-        <div class="form-group">
-            <label for="" class="control-label">Contact</label>
-            <input type="tel" name="mobile" required="" class="form-control" maxlength="11">
-        </div>
-        <div class="form-group">
-            <label for="" class="control-label">Address</label>
-            <select name="address" class="form-control" required>
-                <option value="">Select Address</option>
-                <?php foreach ($addresses as $address): ?>
-                    <option value="<?php echo htmlspecialchars($address); ?>"><?php echo htmlspecialchars($address); ?></option>
-                <?php endforeach; ?>
-            </select>
-        </div>
-        <div class="form-group">
-            <label for="" class="control-label">Email</label>
-            <input type="email" name="email" required="" class="form-control">
-        </div>
-        <div class="form-group">
-            <label for="" class="control-label">Password</label>
-            <input type="password" name="password" id="password" required="" class="form-control">
-            <input type="checkbox" id="show-password"> Show Password
-            <small class="form-text text-muted">Password must be at least 8 characters long and include a combination of uppercase letters, lowercase letters, numbers, and symbols.</small>
-            <div id="password-strength-meter" class="progress mt-2" style="height: 20px;">
-                <div class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+    <div class="container-fluid">
+        <form id="signup-form" method="POST">
+            <div class="form-group mb-3">
+                <label for="first_name">First Name</label>
+                <input type="text" class="form-control" id="first_name" name="first_name" required>
             </div>
-            <small id="password-strength-text" class="form-text mt-2"></small>
-        </div>
-        <div class="form-group form-check">
-            <input type="checkbox" class="form-check-input" id="terms" required>
-            <label class="form-check-label" for="terms">
-                I agree to the <a href="terms_and_conditions.php" target="_blank">Terms and Conditions</a>
-            </label>
-        </div>
-        <button type="submit" class="btn btn-info btn-sm">Create</button>
-    </form>
-</div>
+            
+            <div class="form-group mb-3">
+                <label for="last_name">Last Name</label>
+                <input type="text" class="form-control" id="last_name" name="last_name" required>
+            </div>
+            
+            <div class="form-group mb-3">
+                <label for="mobile">Contact</label>
+                <div class="input-group">
+                    <span class="input-group-text">+63</span>
+                    <input type="tel" class="form-control" id="mobile" name="mobile" maxlength="10" required>
+                </div>
+                <small class="form-text text-muted">Enter 10-digit mobile number</small>
+            </div>
 
-<style>
-    #uni_modal .modal-footer {
-        display: none;
-    }
-</style>
+            <div class="form-group mb-3">
+                <label for="municipality">Municipality</label>
+                <select class="form-control" id="municipality" name="municipality" required>
+                    <option value="">Select Municipality</option>
+                    <?php foreach($municipalities as $municipality): ?>
+                        <option value="<?php echo htmlspecialchars($municipality); ?>">
+                            <?php echo htmlspecialchars($municipality); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
 
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
-    $('#signup-frm').submit(function (e) {
-        e.preventDefault();
-        $('#signup-frm button[type="submit"]').attr('disabled', true).html('Saving...');
+            <div class="form-group mb-3">
+                <label for="address">Address</label>
+                <select class="form-control" id="address" name="address" required disabled>
+                    <option value="">Select Municipality First</option>
+                </select>
+            </div>
 
-        $.ajax({
-            url: 'admin/ajax.php?action=signup',
-            method: 'POST',
-            data: $(this).serialize(),
-            error: err => {
-                console.log(err);
+            <!-- Add a new Street input field -->
+            <div class="form-group mb-3">
+                <label for="street">Street</label>
+                <input type="text" class="form-control" id="street" name="street" required>
+            </div>
+            
+            <div class="form-group mb-3">
+                <label for="email">Email</label>
+                <input type="email" class="form-control" id="email" name="email" required>
+            </div>
+            
+            <div class="form-group mb-3">
+                <label for="password">Password</label>
+                <div class="input-group">
+                    <input type="password" class="form-control" id="password" name="password" required>
+                    <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                        <i class="fa fa-eye"></i>
+                    </button>
+                </div>
+                <small class="form-text text-muted">
+                    Password must be at least 8 characters long and include uppercase, lowercase, numbers, and symbols.
+                </small>
+            </div>
+            
+            <div class="form-check mb-3">
+                <input type="checkbox" class="form-check-input" id="terms" required>
+                <label class="form-check-label" for="terms">
+                    I agree to the Terms and Conditions
+                </label>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">Create Account</button>
+        </form>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <script>
+    $(document).ready(function() {
+        // Store shipping info for client-side filtering
+        const shippingInfo = <?php echo json_encode($shipping_info); ?>;
+
+        // Municipality change handler
+        $('#municipality').change(function() {
+            const selectedMunicipality = $(this).val();
+            const addressSelect = $('#address');
+            
+            // Clear and disable address select if no municipality is selected
+            if (!selectedMunicipality) {
+                addressSelect.html('<option value="">Select Municipality First</option>').prop('disabled', true);
+                return;
+            }
+
+            // Filter addresses for selected municipality
+            const filteredAddresses = shippingInfo.filter(info => info.municipality === selectedMunicipality);
+            
+            // Enable and populate address select
+            addressSelect.prop('disabled', false);
+            addressSelect.html('<option value="">Select Address</option>');
+            
+            filteredAddresses.forEach(info => {
+                addressSelect.append(`<option value="${info.address}">${info.address}</option>`);
+            });
+        });
+
+        // Password visibility toggle
+        $('#togglePassword').click(function() {
+            const password = $('#password');
+            const icon = $(this).find('i');
+            
+            if (password.attr('type') === 'password') {
+                password.attr('type', 'text');
+                icon.removeClass('fa-eye').addClass('fa-eye-slash');
+            } else {
+                password.attr('type', 'password');
+                icon.removeClass('fa-eye-slash').addClass('fa-eye');
+            }
+        });
+
+     // Mobile number handling
+     $('#mobile').on('input', function() {
+            // Remove any non-digit characters
+            let value = $(this).val().replace(/\D/g, '');
+            
+            // Ensure only 10 digits can be entered
+            if (value.length > 10) {
+                value = value.slice(0, 10);
+            }
+            
+            $(this).val(value);
+        });
+        // Form validation and submission
+        $('#signup-form').on('submit', function(e) {
+            e.preventDefault();
+            
+            // Basic client-side validation for password
+            const password = $('#password').val();
+            if (password.length < 8) {
                 Swal.fire({
                     icon: 'error',
-                    title: 'Oops...',
-                    text: 'An error occurred while saving. Please try again.',
+                    title: 'Invalid Password',
+                    text: 'Password must be at least 8 characters long'
                 });
-                $('#signup-frm button[type="submit"]').removeAttr('disabled').html('Create');
-            },
-            success: function (resp) {
-                if (resp == 1) {
+                return;
+            }
+
+            if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || 
+                !/[0-9]/.test(password) || !/[^A-Za-z0-9]/.test(password)) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Invalid Password',
+                    text: 'Password must include uppercase, lowercase, numbers, and symbols'
+                });
+                return;
+            }
+
+          // Mobile number validation
+          const mobile = $('#mobile').val();
+            if (mobile.length !== 10) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Invalid Mobile Number',
+                    text: 'Please enter a 10-digit mobile number'
+                });
+                return;
+            }
+
+            // Prepare form data with complete phone number
+            let formData = $(this).serialize();
+            formData = formData.replace('mobile=' + mobile, 'mobile=+63' + mobile);
+            
+            $.ajax({
+                url: 'signup_action.php',
+                type: 'POST',
+                data: formData,
+                dataType: 'json',
+                beforeSend: function() {
                     Swal.fire({
-                        icon: 'success',
-                        title: 'Success!',
-                        text: 'Account created successfully!',
-                        showConfirmButton: false,
-                        timer: 1500
-                    }).then(() => {
-                        location.href = '<?php echo isset($_GET['redirect']) ? $_GET['redirect'] : 'index.php?page=home' ?>';
+                        title: 'Creating Account',
+                        text: 'Please wait...',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
                     });
-                } else {
+                },
+                success: function(response) {
+                    if (response.status === 'success') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success!',
+                            text: response.message,
+                            timer: 2000,
+                            showConfirmButton: false
+                        }).then(function() {
+                            window.location.href = 'email_otp.php';
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error!',
+                            text: response.message
+                        });
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('XHR:', xhr);
+                    console.error('Status:', status);
+                    console.error('Error:', error);
+                    
                     Swal.fire({
                         icon: 'error',
-                        title: 'Error',
-                        text: 'Email already exists.',
+                        title: 'Error!',
+                        text: 'An error occurred. Please try again later.'
                     });
-                    $('#signup-frm button[type="submit"]').removeAttr('disabled').html('Create');
                 }
-            }
+            });
         });
     });
-
-    $(document).ready(function() {
-        // Password visibility toggle
-        $('#show-password').on('click', function() {
-            var passwordField = $('#password');
-            if ($(this).is(':checked')) {
-                passwordField.attr('type', 'text');
-            } else {
-                passwordField.attr('type', 'password');
-            }
-        });
-
-        // Password strength checker
-        function checkPasswordStrength(password) {
-            var strength = 0;
-            var feedback = [];
-
-            // Check length
-            if (password.length >= 8) strength += 1;
-            else feedback.push("be at least 8 characters long");
-
-            // Check for uppercase letters
-            if (password.match(/[A-Z]/)) strength += 1;
-            else feedback.push("include uppercase letters");
-
-            // Check for lowercase letters
-            if (password.match(/[a-z]/)) strength += 1;
-            else feedback.push("include lowercase letters");
-
-            // Check for numbers
-            if (password.match(/\d/)) strength += 1;
-            else feedback.push("include numbers");
-
-            // Check for symbols
-            if (password.match(/[^a-zA-Z\d]/)) strength += 1;
-            else feedback.push("include symbols");
-
-            return { strength: strength, feedback: feedback };
-        }
-
-        $('#password').on('input', function() {
-            var password = $(this).val();
-            var result = checkPasswordStrength(password);
-
-            // Update progress bar
-            var percent = (result.strength / 5) * 100;
-            $('#password-strength-meter .progress-bar').css('width', percent + '%').attr('aria-valuenow', percent);
-
-            // Update feedback text
-            var strengthText;
-            switch (result.strength) {
-                case 0:
-                case 1:
-                    strengthText = 'Very Weak';
-                    break;
-                case 2:
-                    strengthText = 'Weak';
-                    break;
-                case 3:
-                    strengthText = 'Moderate';
-                    break;
-                case 4:
-                    strengthText = 'Strong';
-                    break;
-                case 5:
-                    strengthText = 'Very Strong';
-                    break;
-            }
-            $('#password-strength-text').text(strengthText + ' (' + result.feedback.join(', ') + ')');
-        });
-    });
-</script>
+    </script>
+</body>
+</html>

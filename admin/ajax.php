@@ -1,5 +1,5 @@
 <?php
-
+//ajax.php
 ob_start();
 include 'db_connect.php'; // This should define $conn for database operations
 include 'admin_class.php';
@@ -170,12 +170,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_GET['action'] == 'update_delivery
     $status = $_POST['status'];
 
     // Validate input
-    $allowed_statuses = ['pending', 'confirmed', 'delivered', 'arrived', 'completed'];
+    $allowed_statuses = ['pending', 'confirmed', 'preparing', 'ready', 'in_transit','delivered'];
     if (!in_array($status, $allowed_statuses)) {
         echo json_encode(['success' => false, 'message' => 'Invalid delivery status.']);
         exit;
     }
-
+    
     // Prepare the statement
     $stmt = $conn->prepare("UPDATE orders SET delivery_status = ? WHERE id = ?");
     if (!$stmt) {
@@ -198,5 +198,75 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_GET['action'] == 'update_delivery
     // Close the statement
     $stmt->close();
 }
+if ($action == 'send_otp') {
+    $email = $_POST['email']; // Get email from POST
+    if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        // Generate OTP
+        $otp = rand(100000, 999999); // Generate a random 6-digit OTP
+        
+        // Store OTP in the database or session (you can decide how to store it)
+        // Example of storing in the session (if you have session started):
+        // session_start();
+        // $_SESSION['otp'] = $otp;
 
+        // Use PHPMailer or similar to send the OTP to the user's email
+        // Assuming you have a function sendOtpEmail($email, $otp)
+        $send_status = sendOtpEmail($email, $otp); // Replace with your actual sending function
+
+        if ($send_status) {
+            echo json_encode(['success' => true, 'otp' => $otp]); // Send success response
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Failed to send OTP.']);
+        }
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Invalid email address.']);
+    }
+}
+if($action == "forgot_password"){
+    $email = $_POST['email'];
+    $query = $conn->query("SELECT * FROM user_info WHERE email = '$email'");
+    if($query->num_rows > 0){
+        $user = $query->fetch_assoc();
+        $code = rand(100000, 999999);
+        $reset_time = date('H:i:s');
+        
+        $conn->query("UPDATE user_info SET code = '$code', reset_time = '$reset_time' WHERE email = '$email'");
+        
+        // Send email
+        $to = $email;
+        $subject = "Password Reset Request";
+        $reset_link = "http://mandm-lawis.com/reset_password.php?code=".$code."&email=".$email;
+        $message = "Click the following link to reset your password: ".$reset_link;
+        $headers = "From: your@email.com";
+        
+        mail($to, $subject, $message, $headers);
+        
+        $resp['status'] = 'success';
+    }else{
+        $resp['status'] = 'failed';
+        $resp['message'] = 'Email not found in our records.';
+    }
+    echo json_encode($resp);
+}
+
+
+if(isset($_GET['action'])) {
+    $action = $_GET['action'];
+    
+    // Handle forgot_password action
+    if ($action == "forgot_password") {
+        $save = $crud->forgot_password();
+        if ($save) {
+            echo $save; // Send the response (success/error) back to the client
+        }
+    }
+
+    // Handle reset_password action
+    if ($action == "reset_password") {
+        $save = $crud->reset_password();
+        if ($save) {
+            echo $save; // Send the response (success/error) back to the client
+        }
+    }
+}
 ?>

@@ -341,118 +341,139 @@ if ($result->num_rows > 0) {
         </div>
     </div>
 
-    <!-- Total Cakes Card -->
+    <!-- Total Products Card -->
     <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12 mb-3">
         <div class="card rounded-0 shadow card-custom bg-blue">
-            <div class="card-body" style="background: #adebd6; color: #d982ff;">
+            <div class="card-body" style="background:#cce5ff; color: #0056b3;">
                 <div class="media">
                     <div class="media-left meida media-middle"> 
-                        <span><i class="fa fa-birthday-cake bounce" style="height: 50px; width: 50px;" aria-hidden="true"></i></span>
+                        <span><i class="fa fa-cube bounce" style="height: 50px; width: 50px;" aria-hidden="true"></i></span>
                     </div>
                     <div class="media-body media-text-center">
-                        <h5 class="text-right" style="color: black; font-size: 30px; font-family: courier-new;">Total Cakes</h5>
-                        <h2 class="text-right" style="color: black;"><b><?= number_format($total_products) ?></b></h2>
+                        <h5 class="text-right" style="color: black; font-size: 30px; font-family: courier-new;">Total Products</h5>
+                        <h2 class="text-right" style="color: black;"><b><?= $total_products ?></b></h2>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
- <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12 mb-3">
-    <div class="card rounded-0 shadow card-custom bg-blue">
-        <div class="card-body" style="background:  #b8abff; color: #1c332e;">
-            <div class="media">
-                <div class="media-left meida media-middle"> 
-                    <span><i class="fa fa-users bounce" style="height: 50px; width: 50px;" aria-hidden="true"></i></span>
-                </div>
-                <div class="media-body media-text-center">
-                    <h5 class="text-right" style="color: black; font-size: 30px; font-family: courier-new;">Total Users</h5>
-                    <h2 class="text-right" style="color: black;"><b><?= number_format($total_users) ?></b></h2>
+    <!-- Total Users Card -->
+    <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12 mb-3">
+        <div class="card rounded-0 shadow card-custom bg-blue">
+            <div class="card-body" style="background:#d1ecf1; color: #0c5460;">
+                <div class="media">
+                    <div class="media-left meida media-middle"> 
+                        <span><i class="fa fa-users bounce" style="height: 50px; width: 50px;" aria-hidden="true"></i></span>
+                    </div>
+                    <div class="media-body media-text-center">
+                        <h5 class="text-right" style="color: black; font-size: 30px; font-family: courier-new;">Total Users</h5>
+                        <h2 class="text-right" style="color: black;"><b><?= $total_users ?></b></h2>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
- <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12 mb-3">
-    <div class="card rounded-0 shadow card-custom bg-blue">
-           <div class="card-body" style="background: #fff3cd; color: #856404;">
+
+    <!-- Total Orders Card -->
+    <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12 mb-3">
+        <div class="card rounded-0 shadow card-custom bg-blue">
+            <div class="card-body" style="background:#f8d7da; color: #721c24;">
                 <div class="media">
                     <div class="media-left meida media-middle"> 
-                        <span><i class=" fa fa-shopping-cart bounce" style="height: 50px; width: 50px;" aria-hidden="true"></i></span>
+                        <span><i class="fa fa-shopping-cart bounce" style="height: 50px; width: 50px;" aria-hidden="true"></i></span>
                     </div>
                     <div class="media-body media-text-center">
                         <h5 class="text-right" style="color: black; font-size: 30px; font-family: courier-new;">Total Orders</h5>
-                        <h2 class="text-right" style="color: black;"><b><?= number_format($total_orders) ?></b></h2>
+                        <h2 class="text-right" style="color: black;"><b><?= $total_orders ?></b></h2>
                     </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-            
-        
-
-
-   <style>
-        .chart {
-            width: 100% !important; /* Ensures the canvas uses 100% of the parent's width */
-            max-width: 600px; /* Maximum width of the canvas */
-            height: 500px !important; /* Fixed height of the canvas */
-        }
-    </style>
-</head>
-<body>
-    <div class="col-md-6">
-        <h3>Sales by Address</h3>
-        <canvas id="salesByAddressChart" class="chart"></canvas>
+<div class="row m-3">
+    <!-- Pie Chart for Sales by Address -->
+    <div class="col-lg-6 col-md-12 mb-3">
+        <div class="card rounded-0 shadow">
+            <div class="card-body">
+                <h5 class="card-title">Sales by Address</h5>
+                <canvas id="salesByAddressChart"></canvas>
+            </div>
+        </div>
     </div>
 
-    <div class="col-md-6">
-        <h3>Monthly Sales</h3>
-        <canvas id="monthlySalesChart" class="chart"></canvas>
+    <!-- Monthly Sales Chart -->
+    <div class="col-lg-6 col-md-12 mb-3">
+        <div class="card rounded-0 shadow">
+            <div class="card-body">
+                <h5 class="card-title">Monthly Sales for the Last 12 Months</h5>
+                <canvas id="monthlySalesChart"></canvas>
+            </div>
+        </div>
     </div>
+</div>
 
 <script>
-    // Pie Chart
+    // Sales by Address Chart
     const salesByAddressCtx = document.getElementById('salesByAddressChart').getContext('2d');
-    const salesByAddressData = <?= json_encode($data) ?>;
-    new Chart(salesByAddressCtx, {
+    const salesByAddressData = {
+        labels: <?= json_encode(array_column($data, 'address')) ?>,
+        datasets: [{
+            label: 'Total Sales',
+            data: <?= json_encode(array_column($data, 'total_sales')) ?>,
+            backgroundColor: 'rgba(75, 192, 192, 0.6)',
+            borderColor: 'rgba(75, 192, 192, 1)',
+            borderWidth: 1
+        }]
+    };
+    const salesByAddressChart = new Chart(salesByAddressCtx, {
         type: 'pie',
-        data: {
-            labels: salesByAddressData.map(d => d.address),
-            datasets: [{
-                data: salesByAddressData.map(d => d.total_sales),
-                backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF']
-            }]
+        data: salesByAddressData,
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                title: {
+                    display: true,
+                    text: 'Sales by Address'
+                }
+            }
         }
     });
 
-     // Bar Chart
-        const monthlySalesCtx = document.getElementById('monthlySalesChart').getContext('2d');
-        const monthlySalesLabels = Object.keys(<?= json_encode($monthly_sales_data) ?>);
-        const monthlySalesData = Object.values(<?= json_encode($monthly_sales_data) ?>);
-        new Chart(monthlySalesCtx, {
-            type: 'bar',
-            data: {
-                labels: [
-                    'January', 'February', 'March', 'April', 'May', 'June',
-                    'July', 'August', 'September', 'October', 'November', 'December'
-                ],
-                datasets: [{
-                    label: 'Sales',
-                    data: monthlySalesLabels.map(month => monthlySalesData[month] || 0),
-                    backgroundColor: '#007bff'
-                }]
-            },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
+    // Monthly Sales Chart
+    const monthlySalesCtx = document.getElementById('monthlySalesChart').getContext('2d');
+    const monthlySalesData = {
+        labels: <?= json_encode(array_keys($monthly_sales_data)) ?>,
+        datasets: [{
+            label: 'Monthly Sales',
+            data: <?= json_encode(array_values($monthly_sales_data)) ?>,
+            backgroundColor: 'rgba(153, 102, 255, 0.6)',
+            borderColor: 'rgba(153, 102, 255, 1)',
+            borderWidth: 1
+        }]
+    };
+    const monthlySalesChart = new Chart(monthlySalesCtx, {
+        type: 'bar',
+        data: monthlySalesData,
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                title: {
+                    display: true,
+                    text: 'Monthly Sales for the Last 12 Months'
                 }
             }
-        });
-    </script>
+        }
+    });
+</script>
+
 </body>
 </html>
-

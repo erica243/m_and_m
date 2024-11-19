@@ -87,14 +87,17 @@
                                 case 'confirmed':
                                     echo '<span class="badge badge-info">Confirmed</span>';
                                     break;
-                                case 'arrived':
-                                    echo '<span class="badge badge-primary">Arrived</span>';
+                                case 'preparing':
+                                    echo '<span class="badge badge-primary">Preparing</span>';
                                     break;
+                                case 'ready':
+                                    echo '<span class="badge badge-success">Readyfordelivery</span>';
+                                    break;
+                                    case 'in_transit':
+                                        echo '<span class="badge badge-success">In transit</span>';
+                                        break;
                                 case 'delivered':
-                                    echo '<span class="badge badge-success">Delivered</span>';
-                                    break;
-                                case 'completed':
-                                    echo '<span class="badge badge-dark">Completed</span>';
+                                    echo '<span class="badge badge-dark">Delivered</span>';
                                     break;
                                 default:
                                     echo '<span class="badge badge-secondary">Unknown</span>';

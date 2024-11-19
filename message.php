@@ -1,6 +1,34 @@
 <?php
-include 'admin/db_connect.php'; // Database connection
+session_start();
+include 'admin/db_connect.php'; // Include the database connection
 
+// Fetch the logged-in user's email
+$logged_in_email = '';
+
+if (isset($_SESSION['login_user_id'])) {
+    $user_id = intval($_SESSION['login_user_id']); // Sanitize the user ID
+    $query = "SELECT email FROM user_info WHERE user_id = ?";
+    
+    // Use a prepared statement for secure database querying
+    if ($stmt = $conn->prepare($query)) {
+        $stmt->bind_param("i", $user_id); // Bind user_id as an integer
+        $stmt->execute(); // Execute the statement
+        $result = $stmt->get_result(); // Get the result set
+
+        if ($result->num_rows > 0) {
+            $user = $result->fetch_assoc(); // Fetch the user's data
+            $logged_in_email = $user['email']; // Assign email to variable
+        } else {
+            $logged_in_email = 'No email found!'; // Handle no email case
+        }
+
+        $stmt->close(); // Close the statement
+    } else {
+        die("Error in prepared statement: " . $conn->error); // Debug if prepare fails
+    }
+} else {
+    $logged_in_email = 'User not logged in!'; // Handle case if no user is logged in
+}
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Initialize variables with empty strings
@@ -316,7 +344,7 @@ if (isset($_POST['reply']) && isset($_POST['message_id'])) {
     <form method="post" enctype="multipart/form-data">
         <div class="form-group">
             <label for="email">Email</label>
-            <input type="email" class="form-control email" id="email" name="email" required>
+            <input type="email" class="form-control email" id="email" name="email" value="<?php echo htmlspecialchars($logged_in_email); ?>" readonly>
         </div>
        
         <div class="form-group">
@@ -332,34 +360,48 @@ if (isset($_POST['reply']) && isset($_POST['message_id'])) {
     </div>
 
     <div class="container">
-        <h2>Messages</h2>
-        <?php
-        $sql = "SELECT * FROM messages";
+    <h2>Your Messages</h2>
+    <?php
+    // Ensure the user is logged in
+    if (isset($_SESSION['login_user_id'])) {
+        $user_id = $_SESSION['login_user_id']; // Get the logged-in user's email
+
+        // Query to fetch messages specific to the logged-in user's email
+        $sql = "SELECT * FROM messages WHERE user_id = '$user_id'";
         $result = $conn->query($sql);
 
+        // Check if messages are found
         if ($result->num_rows > 0) {
             while ($row = $result->fetch_assoc()) {
                 echo '<div class="message-box">';
                 echo '<strong>Email:</strong> ' . htmlspecialchars($row['email']) . '<br>';
-            
                 echo '<strong>Message:</strong> <p>' . htmlspecialchars($row['message']) . '</p>';
+                
+                // Check if the message has an attached image
                 if ($row['image_path']) {
                     echo '<img src="' . htmlspecialchars($row['image_path']) . '" alt="Uploaded Image">';
                 }
+
+                // Display admin reply if available
                 if ($row['admin_reply']) {
                     echo '<div class="admin-reply">';
                     echo '<strong>Admin Reply:</strong> <p>' . htmlspecialchars($row['admin_reply']) . '</p>';
                     echo '<small>Reply Date: ' . htmlspecialchars($row['reply_date']) . '</small>';
                     echo '</div>';
                 }
+
+                // Delete message link (using message ID)
                 echo '<a href="?delete_id=' . htmlspecialchars($row['id']) . '" class="btn btn-danger" onclick="return confirm(\'Are you sure you want to delete this message?\')">Delete</a>';
                 echo '</div>';
             }
         } else {
             echo '<p>No messages found.</p>';
         }
-        ?>
-
+    } else {
+        echo '<p>You need to be logged in to view your messages.</p>';
+    }
+    ?>
 </div>
+
 </body>
 </html>

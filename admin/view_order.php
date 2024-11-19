@@ -122,9 +122,11 @@ $shippingAmount = $shippingResult->fetch_assoc()['shipping_amount'] ?? 0;
         <select id="delivery_status" class="form-control w-50 mx-auto mt-2" onchange="update_delivery_status()">
             <option value="pending" <?php echo $deliveryStatus == 'pending' ? 'selected' : ''; ?>>Pending</option>
             <option value="confirmed" <?php echo $deliveryStatus == 'confirmed' ? 'selected' : ''; ?>>Confirmed</option>
-            <option value="arrived" <?php echo $deliveryStatus == 'arrived' ? 'selected' : ''; ?>>Arrived</option>
+            <option value="preparing" <?php echo $deliveryStatus == 'preparing' ? 'selected' : ''; ?>>Preparing</option>
+            <option value="ready" <?php echo $deliveryStatus == 'ready' ? 'selected' : ''; ?>>Ready For Delivery</option>
+            <option value="in_transit" <?php echo $deliveryStatus == 'in_transit' ? 'selected' : ''; ?>>In transit</option>
             <option value="delivered" <?php echo $deliveryStatus == 'delivered' ? 'selected' : ''; ?>>Delivered</option>
-            <option value="completed" <?php echo $deliveryStatus == 'completed' ? 'selected' : ''; ?>>Completed</option>
+      
         </select>
     </div>
 </div>

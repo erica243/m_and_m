@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -29,52 +27,59 @@
                             <colgroup>
                                 <col width="10%">
                                 <col width="30%">
-                                <col width="40%">
                                 <col width="20%">
+                                <col width="30%">
+                                <col width="10%">
                             </colgroup>
                             <thead>
                                 <tr>
                                     <th class="text-center">#</th>
                                     <th class="text-center">Image</th>
                                     <th class="text-center">Menu Details</th>
+                                    <th class="text-center">Availability</th>
                                     <th class="text-center">Action</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php 
-                                $i = 1;
-                                $menus = $conn->query("SELECT p.*, c.name as category_name FROM product_list p INNER JOIN category_list c ON c.id = p.category_id ORDER BY p.id ASC");
-                                while($row = $menus->fetch_assoc()):
-                                ?>
-                                <tr>
-                                    <td class="text-center"><?php echo $i++ ?></td>
-                                    <td class="text-center">
-                                        <img src="<?php echo isset($row['img_path']) ? '../assets/img/'.$row['img_path'] : 'https://via.placeholder.com/150' ?>" alt="" class="img-fluid img-thumbnail" style="max-width: 200px; height: 200px">
-                                    </td>
-                                    <td>
-                                        <p><b>Name:</b> <?php echo $row['name'] ?></p>
-                                        <p><b>Category:</b> <?php echo $row['category_name'] ?></p>
-                                        <p><b>Description:</b> <?php echo $row['description'] ?></p>
-                                        <p><b>Price:</b> <?php echo number_format($row['price'], 2) ?></p>
-                                       
-                                        <p><b>Availability:</b> <?php echo $row['status'] == 'Available' ? 'Available' : 'Unavailable' ?></p>
-                                    </td>
-                                    <td class="text-center">
-                                        <button class="btn btn-sm btn-primary edit_menu" type="button" 
-                                                data-id="<?php echo $row['id'] ?>"
-                                                data-name="<?php echo $row['name'] ?>"
-                                                data-status="<?php echo $row['status'] ?>"
-                                                data-description="<?php echo $row['description'] ?>"
-                                                data-price="<?php echo $row['price'] ?>"
-                                                data-category_id="<?php echo $row['category_id'] ?>"
-                                               
-                                                data-img_path="<?php echo $row['img_path'] ?>">Edit
-                                        </button>
-                                        <button class="btn btn-sm btn-danger delete_menu" type="button" data-id="<?php echo $row['id'] ?>">Delete</button>
-                                    </td>
-                                </tr>
-                                <?php endwhile; ?>
-                            </tbody>
+    <?php 
+    $i = 1;
+    $menus = $conn->query("SELECT p.*, c.name as category_name FROM product_list p INNER JOIN category_list c ON c.id = p.category_id ORDER BY p.id ASC");
+    while($row = $menus->fetch_assoc()):
+    ?>
+    <tr>
+        <td class="text-center"><?php echo $i++ ?></td>
+        <td class="text-center">
+            <img src="<?php echo isset($row['img_path']) ? '../assets/img/'.$row['img_path'] : 'https://via.placeholder.com/150' ?>" alt="" class="img-fluid img-thumbnail" style="max-width: 200px; height: 200px">
+        </td>
+        <td>
+            <p><b>Name:</b> <?php echo $row['name'] ?></p>
+            <p><b>Category:</b> <?php echo $row['category_name'] ?></p>
+            <p><b>Description:</b> <?php echo $row['description'] ?></p>
+            <p><b>Price:</b> <?php echo number_format($row['price'], 2) ?></p>
+            <p><b>Size:</b> <?php echo $row['size'] . ' ' . $row['size_unit']; ?></p>
+            <p><b>Stock:</b> <?php echo $row['stock'] ?></p> <!-- Display stock -->
+        </td>
+        <td class="text-center">
+            <p><?php echo $row['status'] == 'Available' ? 'Available' : 'Unavailable' ?></p>
+        </td>
+        <td class="text-center">
+            <button class="btn btn-sm btn-primary edit_menu" type="button" 
+                    data-id="<?php echo $row['id'] ?>"
+                    data-name="<?php echo $row['name'] ?>"
+                    data-status="<?php echo $row['status'] ?>"
+                    data-description="<?php echo $row['description'] ?>"
+                    data-price="<?php echo $row['price'] ?>"
+                    data-category_id="<?php echo $row['category_id'] ?>"
+                    data-size="<?php echo $row['size'] ?>"
+                    data-size_unit="<?php echo $row['size_unit'] ?>"
+                    data-img_path="<?php echo $row['img_path'] ?>"
+                    data-stock="<?php echo $row['stock'] ?>">Edit
+            </button>
+            <button class="btn btn-sm btn-danger delete_menu" type="button" data-id="<?php echo $row['id'] ?>">Delete</button>
+        </td>
+    </tr>
+    <?php endwhile; ?>
+</tbody>
                         </table>
                     </div>
                 </div>
@@ -124,7 +129,19 @@
                             <label class="control-label">Price</label>
                             <input type="number" class="form-control text-left" name="price" step="any" required>
                         </div>
-                      
+                        <div class="form-group">
+    <label for="stock">Stock</label>
+    <input type="number" class="form-control" name="stock" id="stock" required>
+</div>
+
+                        <label for="size">Size:</label>
+                        <input type="text" name="size" id="size" required>
+                        <label for="size_unit">Size Unit:</label>
+                        <select name="size_unit" id="size_unit" required>
+                            <option value="inches">Inches</option>
+                            <option value="cm">Centimeters</option>
+                            <option value="mm">Millimeters</option>
+                        </select>
                         <div class="form-group">
                             <label class="control-label">Image</label>
                             <input type="file" class="form-control" name="img" onchange="displayImg(this)">
@@ -171,85 +188,69 @@
     $('#manage-menu').submit(function(e) {
         e.preventDefault();
         var formData = new FormData(this);
-
         $.ajax({
-            url: 'ajax.php?action=save_menu',
-            type: 'POST',
+            url: 'ajax.php?action=save_menu', // Ensure your PHP file handles the request correctly
+            method: 'POST',
             data: formData,
-            cache: false,
             contentType: false,
             processData: false,
-            success: function(response) {
-                if (response == 1) {
-                    Swal.fire('Success', 'Menu item saved successfully!', 'success').then(() => {
+            success: function(resp) {
+                if (resp == 1) {
+                    Swal.fire('Success!', 'Menu item saved successfully.', 'success');
+                    setTimeout(function() {
                         location.reload();
-                    });
+                    }, 1500);
                 } else {
-                    Swal.fire('Error', 'Failed to save menu item.', 'error');
+                    Swal.fire('Error!', 'An error occurred. Please try again.', 'error');
                 }
-            },
-            error: function(xhr, status, error) {
-                Swal.fire('Error', 'An error occurred while saving the menu item.', 'error');
             }
         });
     });
 
     $('.edit_menu').click(function() {
         $('#manage-menu-form').show();
-        var id = $(this).data('id');
-        var name = $(this).data('name');
-        var description = $(this).data('description');
-        var status = $(this).data('status');
-        var price = $(this).data('price');
-        var category_id = $(this).data('category_id');
-       
-        var img_path = $(this).data('img_path');
-
-        $('#manage-menu [name="id"]').val(id);
-        $('#manage-menu [name="name"]').val(name);
-        $('#manage-menu [name="description"]').val(description);
-        $('#manage-menu [name="status"]').val(status);
-        $('#manage-menu [name="price"]').val(price);
-        $('#manage-menu [name="category_id"]').val(category_id);
-
-        $('#preview_image').attr('src', '../assets/img/' + img_path);
-        $('html, body').animate({
-            scrollTop: $("#manage-menu-form").offset().top
-        }, 500);
+        $('input[name=id]').val($(this).attr('data-id'));
+        $('input[name=name]').val($(this).attr('data-name'));
+        $('textarea[name=description]').val($(this).attr('data-description'));
+        $('input[name=price]').val($(this).attr('data-price'));
+        $('select[name=status]').val($(this).attr('data-status'));
+        $('select[name=category_id]').val($(this).attr('data-category_id'));
+        $('input[name=size]').val($(this).attr('data-size'));
+        $('select[name=size_unit]').val($(this).attr('data-size_unit'));
+        $('#preview_image').attr('src', $(this).attr('data-img_path'));
+        $('input[name=stock]').val($(this).attr('data-stock')); // Load stock value
     });
 
     $('.delete_menu').click(function() {
-        var id = $(this).data('id');
+        const menu_id = $(this).attr('data-id');
         Swal.fire({
             title: 'Are you sure?',
-            text: 'This will delete the menu item.',
+            text: "You won't be able to revert this!",
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonText: 'Yes, delete it!',
-            cancelButtonText: 'Cancel'
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete it!'
         }).then((result) => {
             if (result.isConfirmed) {
                 $.ajax({
                     url: 'ajax.php?action=delete_menu',
-                    type: 'POST',
-                    data: { id: id },
-                    success: function(response) {
-                        if (response == 1) {
-                            Swal.fire('Deleted!', 'Menu item has been deleted.', 'success').then(() => {
+                    method: 'POST',
+                    data: { id: menu_id },
+                    success: function(resp) {
+                        if (resp == 1) {
+                            Swal.fire('Deleted!', 'Your menu item has been deleted.', 'success');
+                            setTimeout(function() {
                                 location.reload();
-                            });
+                            }, 1500);
                         } else {
-                            Swal.fire('Error', 'Failed to delete menu item.', 'error');
+                            Swal.fire('Error!', 'An error occurred. Please try again.', 'error');
                         }
-                    },
-                    error: function(xhr, status, error) {
-                        Swal.fire('Error', 'An error occurred while deleting the menu item.', 'error');
                     }
                 });
             }
         });
     });
 </script>
-
 </body>
 </html>

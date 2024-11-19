@@ -112,133 +112,240 @@ $result = $stmt->get_result();
     <title>My Orders</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <style>
-        /* Add your CSS styles here */
-        body {
-            font-family: Arial, sans-serif;
+   <style>
+        /* Global styles */
+        :root {
+            --primary-color: #333;
+            --secondary-color: #28a745;
+            --danger-color: #dc3545;
+            --background-color: #f4f4f4;
+            --card-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            --border-color: #ddd;
+            --text-color: #333;
+        }
+
+        * {
             margin: 0;
             padding: 0;
-            background-color: #f4f4f4;
+            box-sizing: border-box;
         }
 
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        /* Header and Footer */
         header, footer {
-            background-color: #333;
-            color: #fff;
-            padding: 10px 20px;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1rem;
             text-align: center;
-        }
-
-        h1 {
-            text-align: center;
-            color: #333;
-            margin: 20px 0;
         }
 
         main {
             max-width: 1200px;
-            margin: 20px auto;
-            padding: 20px;
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin: 2rem auto;
+            padding: 1rem;
         }
 
-        .back-btn {
-            background-color: #007bff;
+        /* Back Button */
+        .back-button {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background-color: var(--primary-color);
             color: white;
-            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-bottom: 1rem;
             border: none;
-            border-radius: 5px;
             cursor: pointer;
-            margin-bottom: 20px;
         }
 
-        .back-btn:hover {
-            background-color: #0056b3;
+        .back-button:hover {
+            opacity: 0.9;
         }
 
+        /* Table Styles */
         table {
             width: 100%;
             border-collapse: collapse;
-            margin: 20px 0;
+            margin: 1rem 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
         }
 
-        table th, table td {
-            padding: 12px;
-            border: 1px solid #ddd;
+        table th,
+        table td {
+            padding: 1rem;
             text-align: left;
+            border: 1px solid var(--border-color);
         }
 
-        table thead th {
-            background-color: #333;
-            color: #fff;
+        table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
         }
 
-        table tbody tr:nth-child(even) {
-            background-color: #f9f9f9;
+        /* Rating Stars */
+        .star-rating {
+            display: inline-flex;
+            gap: 0.25rem;
+            margin: 0.5rem 0;
         }
 
-        table tbody tr:hover {
-            background-color: #f1f1f1;
+        .star-rating input[type="radio"] {
+            display: none;
         }
 
-        table tbody td select, table tbody td textarea {
-            width: 100%;
-            padding: 5px;
-        }
-
-        button {
-            border: none;
-            border-radius: 5px;
-            padding: 10px 15px;
+        .star-rating label {
+            font-size: 1.5rem;
+            color: #d3d3d3;
             cursor: pointer;
-            font-size: 16px;
-            transition: background-color 0.3s, transform 0.2s;
         }
 
-        button:hover {
-            transform: translateY(-2px);
+        .star-rating input[type="radio"]:checked ~ label {
+            color: gold;
         }
 
-        button:focus {
-            outline: none;
+        /* Buttons */
+        button {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: opacity 0.2s;
         }
 
         button[type="submit"] {
-            background-color: #28a745; /* Green */
+            background-color: var(--secondary-color);
             color: white;
-            margin-right: 10px; /* Space between buttons */
-        }
-
-        button[type="submit"]:hover {
-            background-color: #218838; /* Darker green */
-        }
-
-        button[type="submit"]:active {
-            background-color: #1e7e34; /* Even darker green */
         }
 
         button[name="delete_order"] {
-            background-color: #dc3545; /* Red */
+            background-color: var(--danger-color);
             color: white;
         }
 
-        button[name="delete_order"]:hover {
-            background-color: #c82333; /* Darker red */
+        button:hover {
+            opacity: 0.9;
         }
 
-        button[name="delete_order"]:active {
-            background-color: #bd2130; /* Even darker red */
+        /* Forms */
+        textarea {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            margin: 0.5rem 0;
+            resize: vertical;
         }
 
-        .print-receipt {
-            background-color: #007bff; /* Blue */
-            color: white;
-            margin-top: 10px;
+        .rated-message {
+            color: var(--secondary-color);
+            margin: 0.5rem 0;
         }
 
-        .print-receipt:hover {
-            background-color: #0056b3; /* Darker blue */
+        .message {
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+            border: 1px solid var(--border-color);
+        }
+
+        /* Mobile Responsive Design */
+        @media (max-width: 768px) {
+            main {
+                padding: 1rem;
+                margin: 1rem;
+            }
+
+            /* Convert table to cards */
+            table, thead, tbody, th, td, tr {
+                display: block;
+            }
+
+            thead tr {
+                position: absolute;
+                top: -9999px;
+                left: -9999px;
+            }
+
+            tr {
+                margin-bottom: 1rem;
+                border: 1px solid var(--border-color);
+                border-radius: 8px;
+                box-shadow: var(--card-shadow);
+                background: white;
+            }
+
+            td {
+                position: relative;
+                padding: 1rem 1rem 1rem 50%;
+                border: none;
+                border-bottom: 1px solid var(--border-color);
+                min-height: 2.5rem;
+            }
+
+            td:last-child {
+                border-bottom: none;
+            }
+
+            td:before {
+                position: absolute;
+                left: 1rem;
+                width: 45%;
+                padding-right: 0.5rem;
+                white-space: nowrap;
+                font-weight: 600;
+                content: attr(data-label);
+            }
+
+            /* Form elements in mobile view */
+            form {
+                padding: 0.5rem;
+            }
+
+            textarea {
+                margin: 0.5rem 0;
+            }
+
+            button {
+                width: 100%;
+                margin: 0.25rem 0;
+            }
+
+            .star-rating {
+                justify-content: center;
+            }
+        }
+
+        /* Small mobile devices */
+        @media (max-width: 480px) {
+            main {
+                padding: 0.5rem;
+                margin: 0.5rem;
+            }
+
+            td {
+                font-size: 0.9rem;
+                padding: 0.75rem 0.75rem 0.75rem 45%;
+            }
+
+            td:before {
+                font-size: 0.9rem;
+            }
+
+            .star-rating label {
+                font-size: 1.25rem;
+            }
+            
         }
     </style>
 </head>
@@ -246,12 +353,9 @@ $result = $stmt->get_result();
     <header>
         <h1>My Orders</h1>
     </header>
-
     <main>
-        <!-- Back button -->
-        <button class="back-btn" onclick="window.history.back();">Back</button>
-        
-        <!-- Display order details and rating/feedback option -->
+        <a href="index.php" class="back-button">Back to Home</a>
+
         <table>
             <thead>
                 <tr>
@@ -263,7 +367,9 @@ $result = $stmt->get_result();
                     <th>Delivery Method</th>
                     <th>Payment Method</th>
                     <th>Delivery Status</th>
-                    <th>Rate and Comment</th>
+                    
+                    <th>Actions</th>
+                    <th>Rate this Product</th>
                 </tr>
             </thead>
             <tbody>
@@ -278,28 +384,50 @@ $result = $stmt->get_result();
                     <td><?php echo htmlspecialchars($row['payment_method']); ?></td>
                     <td><?php echo htmlspecialchars($row['delivery_status']); ?></td>
                     <td>
-                        <form method="POST" action="">
-                            <input type="hidden" name="product_id" value="<?php echo $row['product_id']; ?>">
+    <a href="track_order.php?order_id=<?php echo $row['id']; ?>" class="inline-block px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-center">
+        Track Order
+    </a>
+</td>
+
+                    <td>
+                        <?php if (strcasecmp($row['delivery_status'], 'delivered') == 0): ?>
+                           
+                            <?php if ($row['rating'] > 0): ?>
+                                <div class="rated-message">You have already rated this product.</div>
+                            <?php else: ?>
+                                <form method="POST" action="">
+                                    <input type="hidden" name="product_id" value="<?php echo $row['product_id']; ?>">
+                                    <input type="hidden" name="order_id" value="<?php echo $row['id']; ?>">
+                                    <label for="rating">Rate:</label>
+                                    <div class="star-rating">
+                                        <input type="radio" id="star5_<?php echo $row['id']; ?>" name="rating" value="5" <?php if ($row['rating'] == 5) echo 'checked'; ?> >
+                                        <label for="star5_<?php echo $row['id']; ?>">★</label>
+                                        <input type="radio" id="star4_<?php echo $row['id']; ?>" name="rating" value="4" <?php if ($row['rating'] == 4) echo 'checked'; ?>>
+                                        <label for="star4_<?php echo $row['id']; ?>">★</label>
+                                        <input type="radio" id="star3_<?php echo $row['id']; ?>" name="rating" value="3" <?php if ($row['rating'] == 3) echo 'checked'; ?>>
+                                        <label for="star3_<?php echo $row['id']; ?>">★</label>
+                                        <input type="radio" id="star2_<?php echo $row['id']; ?>" name="rating" value="2" <?php if ($row['rating'] == 2) echo 'checked'; ?>>
+                                        <label for="star2_<?php echo $row['id']; ?>">★</label>
+                                        <input type="radio" id="star1_<?php echo $row['id']; ?>" name="rating" value="1" <?php if ($row['rating'] == 1) echo 'checked'; ?>>
+                                        <label for="star1_<?php echo $row['id']; ?>">★</label>
+                                    </div>
+                                    <textarea name="feedback" placeholder="Leave your feedback here..."></textarea><br>
+                                    <button type="submit" name="rate_product">Submit Rating</button>
+                                </form>
+                            <?php endif; ?>
+                        <?php endif; ?>
+                    </td>
+                    <td>
+    <?php if (strcasecmp($row['delivery_status'], 'delivered') == 0): ?>
+        <button class="print-button" onclick="printReceipt(<?php echo $row['id']; ?>)">Print Receipt</button>
+    <?php endif; ?>
+</td>
+
+                    <td>
+                        <form method="POST">
                             <input type="hidden" name="order_id" value="<?php echo $row['id']; ?>">
-                            <label for="rating">Rate:</label>
-                            <select name="rating" id="rating" required>
-                                <option value="">Select</option>
-                                <option value="1" <?php if ($row['rating'] == 1) echo 'selected'; ?>>1</option>
-                                <option value="2" <?php if ($row['rating'] == 2) echo 'selected'; ?>>2</option>
-                                <option value="3" <?php if ($row['rating'] == 3) echo 'selected'; ?>>3</option>
-                                <option value="4" <?php if ($row['rating'] == 4) echo 'selected'; ?>>4</option>
-                                <option value="5" <?php if ($row['rating'] == 5) echo 'selected'; ?>>5</option>
-                            </select>
-                            <label for="feedback">Feedback:</label>
-                            <textarea name="feedback" id="feedback" rows="3" placeholder="Leave your feedback here"><?php echo htmlspecialchars($row['feedback']); ?></textarea>
-                            <button type="submit" name="rate_product">Submit</button>
-                            <button type="submit" name="delete_order" onclick="return confirm('Are you sure you want to delete this order?');">Delete</button>
+                            <button type="submit" name="delete_order">Delete Order</button>
                         </form>
-
-                        <?php if (strcasecmp($row['delivery_status'], 'completed') == 0): ?>
-    <button class="print-receipt" onclick="printReceipt(<?php echo $row['id']; ?>)">Receipt</button>
-<?php endif; ?>
-
                     </td>
                 </tr>
                 <?php endwhile; ?>
@@ -307,25 +435,46 @@ $result = $stmt->get_result();
         </table>
 
         <?php if ($message): ?>
-            <script>
-                Swal.fire({
-                    icon: 'info',
-                    title: 'Notification',
-                    text: "<?php echo addslashes($message); ?>",
-                });
-            </script>
+            <div class="message"><?php echo $message; ?></div>
         <?php endif; ?>
     </main>
 
-    <footer>
-        <p>&copy; <?php echo date("Y"); ?> M&M Cake Ordering System. All rights reserved.</p>
-    </footer>
-
     <script>
-    function printReceipt(orderId) {
-        // Replace with the actual URL for printing the receipt
-        window.open('print_receipt.php?order_id=' + orderId, '_blank');
+    function printReceipt(orderNumber) {
+        const receiptContent = `
+            <div style="text-align: center; font-family: Arial, sans-serif; line-height: 1.5;">
+                <h1 style="margin-bottom: 20px;">M&M Cake Ordering</h1>
+                <h3 style="margin-bottom: 20px;">Official Receipt</h3>
+                <p><strong>Order Number:</strong> ${orderNumber}</p>
+                <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
+                <hr style="margin: 20px 0;">
+                <p>Thank you for shopping with us!</p>
+                <p>If you have any questions, feel free to contact us.</p>
+                <hr style="margin: 20px 0;">
+                <p style="font-size: 14px;">This receipt is auto-generated and valid for reference.</p>
+            </div>
+        `;
+
+        const printWindow = window.open('', '_blank', 'width=800,height=600');
+        printWindow.document.write(`
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Receipt</title>
+            </head>
+            <body onload="window.print();" style="padding: 20px;">
+                ${receiptContent}
+            </body>
+            </html>
+        `);
+        printWindow.document.close();
     }
-    </script>
+</script>
+
+    <footer>
+        <p>&copy; 2024 Cake Ordering System</p>
+    </footer>
 </body>
 </html>

@@ -163,6 +163,10 @@ a {
   text-decoration: none;
   background-color: transparent;
 }
+a[href="mailto:oretom23@gmail.com"] {
+  display: none !important;
+}
+
 a:hover {
   color: #d6370c;
   text-decoration: underline;

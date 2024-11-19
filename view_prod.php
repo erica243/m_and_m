@@ -1,13 +1,13 @@
 <?php 
 include 'admin/db_connect.php';
-session_start(); // Ensure session handling
+session_start();
 
 // Handle form submission for ratings
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_rating'])) {
     $product_id = $_POST['product_id'];
     $rating = $_POST['rating'];
     $feedback = $_POST['feedback'];
-    $user = $_SESSION['user_id']; // Ensure the user is logged in and their ID is stored in session
+    $user = $_SESSION['user_id'];
 
     // Insert rating and feedback into the database
     $stmt = $conn->prepare("INSERT INTO product_ratings (product_id, user_id, rating, feedback) VALUES (?, ?, ?, ?)");
@@ -21,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_rating'])) {
 }
 
 // Fetch product details
-$product_id = intval($_GET['id']); // Ensure id is an integer
+$product_id = intval($_GET['id']);
 $qry = $conn->query("SELECT * FROM product_list WHERE id = $product_id")->fetch_array();
 
 // Fetch average rating
@@ -41,7 +41,7 @@ $feedbacks = $feedback_qry->fetch_all(MYSQLI_ASSOC);
 
 // Check product availability
 $availability = $qry['status'];
-$stock_quantity = $qry['stock']; // Stock quantity
+$stock_quantity = $qry['stock'];
 
 function display_star_rating($rating) {
     $full_stars = floor($rating);
@@ -71,10 +71,12 @@ function display_star_rating($rating) {
         .star { cursor: pointer; font-size: 2rem; color: #ddd; }
         .star.selected { color: #ffd700; }
         .btn.disabled { opacity: 0.65; cursor: not-allowed; }
+        .cart-count { position: relative; font-size: 1.2rem; color: red; }
     </style>
 </head>
 <body>
 <div class="container-fluid mt-4">
+   
     <div class="card">
         <img src="assets/img/<?php echo htmlspecialchars($qry['img_path']) ?>" class="card-img-top" alt="Product Image">
         <div class="card-body">
@@ -147,59 +149,82 @@ function display_star_rating($rating) {
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-    $('#qty-minus').click(function(){
-        var qty = $('input[name="qty"]').val();
-        if (qty > 1) {
-            $('input[name="qty"]').val(parseInt(qty) - 1);
-        }
-    });
+    $(document).ready(function() {
+        // Load initial cart count
+        updateCartCount();
 
-    $('#qty-plus').click(function(){
-        var qty = $('input[name="qty"]').val();
-        var maxQty = <?php echo $stock_quantity; ?>;
-        if (qty < maxQty) {
-            $('input[name="qty"]').val(parseInt(qty) + 1);
-        } else {
-            Swal.fire('Limit Reached', 'You have reached the maximum quantity available.', 'warning');
-        }
-    });
-
-    $('#add_to_cart_modal').click(function(){
-        var availability = $(this).data('availability');
-        var stock = $(this).data('stock');
-        
-        if (!availability || stock <= 0) {
-            Swal.fire('Unavailable', 'This product is currently unavailable or out of stock.', 'warning');
-            return;
-        }
-        
-        Swal.fire({
-            title: 'Add to Cart',
-            text: 'Are you sure you want to add this item to your cart?',
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes, add it!'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                $.ajax({
-                    url: 'admin/ajax.php?action=add_to_cart',
-                    method: 'POST',
-                    data: { pid: '<?php echo $product_id ?>', qty: $('input[name="qty"]').val() },
-                    success: function(resp) {
-                        if (resp == 1) {
-                            let currentStock = parseInt($('#stock_display').text());
-                            let qty = parseInt($('input[name="qty"]').val());
-                            $('#stock_display').text(currentStock - qty); // Update stock display on the page
-                            Swal.fire('Added!', 'The product has been added to your cart.', 'success');
-                        } else {
-                            Swal.fire('Error!', 'There was an error adding the product to your cart.', 'error');
-                        }
-                    }
-                });
+        // Quantity adjustment
+        $('#qty-minus').click(function(){
+            var qty = $('input[name="qty"]').val();
+            if (qty > 1) {
+                $('input[name="qty"]').val(parseInt(qty) - 1);
             }
         });
+
+        $('#qty-plus').click(function(){
+            var qty = $('input[name="qty"]').val();
+            var maxQty = <?php echo $stock_quantity; ?>;
+            if (qty < maxQty) {
+                $('input[name="qty"]').val(parseInt(qty) + 1);
+            } else {
+                Swal.fire('Limit Reached', 'You have reached the maximum quantity available.', 'warning');
+            }
+        });
+
+        $('#add_to_cart_modal').click(function(){
+    var availability = $(this).data('availability');
+    var stock = $(this).data('stock');
+    
+    if (!availability || stock <= 0) {
+        Swal.fire('Unavailable', 'This product is currently unavailable or out of stock.', 'warning');
+        return;
+    }
+    
+    Swal.fire({
+        title: 'Add to Cart',
+        text: 'Are you sure you want to add this item to your cart?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, add it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: 'admin/ajax.php?action=add_to_cart',
+                method: 'POST',
+                data: { pid: '<?php echo $product_id ?>', qty: $('input[name="qty"]').val() },
+                success: function(resp) {
+                    if (resp == 1) {
+                        let currentStock = parseInt($('#stock_display').text());
+                        let qty = parseInt($('input[name="qty"]').val());
+                        $('#stock_display').text(currentStock - qty); // Update stock display on the page
+                        Swal.fire('Added!', 'The product has been added to your cart.', 'success').then(() => {
+                            location.reload(); // Refresh the page
+                        });
+                        
+                        // Fetch updated cart count
+                        updateCartCount();
+                    } else {
+                        Swal.fire('Error!', 'There was an error adding the product to your cart.', 'error');
+                    }
+                }
+            });
+        }
+    });
+});
+
+
+        // Function to update the cart count
+        function updateCartCount() {
+            $.ajax({
+                url: 'admin/ajax.php?action=get_cart_count',
+                method: 'GET',
+                success: function(resp) {
+                    $('#cart_count').text(resp); // Update the cart count element
+                }
+            });
+        }
     });
 </script>
 </body>

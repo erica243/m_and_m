@@ -1,49 +1,43 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <title>Forgot Password | M&M Cake Ordering System</title>
-    <?php include('./header.php'); ?>
-</head>
-<body>
-    <div class="container">
-        <h2>Forgot Password</h2>
-        <form method="POST" action="forgot_password.php">
-            <div class="form-group">
-                <label for="username">Enter your email address:</label>
-                <input type="username" id="username" name="username" class="form-control" required>
-            </div>
-            <button type="submit" class="btn btn-primary">Send Reset Link</button>
-        </form>
-        
-        <?php
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            include('./db_connect.php');
+<?php
+session_start();
+?>
+<div class="container-fluid">
+    <form action="" id="forgot-password-frm">
+        <div class="form-group">
+            <label for="" class="control-label">Email</label>
+            <input type="email" name="email" required="" class="form-control">
+        </div>
+        <button class="button btn btn-dark btn-sm">Reset Password</button>
+        <div class="mt-3">
+            <a href="login.php" class="text-dark">Back to Login</a>
+        </div>
+    </form>
+</div>
 
-            $username = $conn->real_escape_string($_POST['username']);
-            $query = $conn->query("SELECT * FROM users WHERE username = '$username'");
-
-            if ($query->num_rows > 0) {
-                // Generate a reset link
-                $token = bin2hex(random_bytes(50));
-                $reset_link = "http://yourwebsite.com/reset_password.php?token=$token";
-
-                // Save the token in the database (ensure you have a column for this)
-                $conn->query("UPDATE users SET reset_token = '$token' WHERE username = '$username'");
-
-                // Send the reset link to the user's email
-                $subject = "Password Reset";
-                $message = "Click the link to reset your password: $reset_link";
-                // Use your mailing function (e.g., PHPMailer) here to send the email
-                // mail($email, $subject, $message);
-
-                echo "<div class='alert alert-success'>A reset link has been sent to your email.</div>";
-            } else {
-                echo "<div class='alert alert-danger'>This email address is not registered.</div>";
+<script>
+$('#forgot-password-frm').submit(function(e){
+    e.preventDefault();
+    $('#forgot-password-frm button[type="submit"]').attr('disabled', true).html('Processing...');
+    if($(this).find('.alert-danger').length > 0)
+        $(this).find('.alert-danger').remove();
+    $.ajax({
+        url: 'admin/ajax.php?action=forgot_password',
+        method: 'POST',
+        data: $(this).serialize(),
+        dataType: 'json',
+        error: err => {
+            console.log(err);
+            $('#forgot-password-frm button[type="submit"]').removeAttr('disabled').html('Reset Password');
+        },
+        success: function(resp){
+            if(resp.status == 'success'){
+                $('#forgot-password-frm').prepend('<div class="alert alert-success">Password reset link has been sent to your email!</div>');
+                $('#forgot-password-frm')[0].reset();
+            }else{
+                $('#forgot-password-frm').prepend('<div class="alert alert-danger">' + resp.message + '</div>');
             }
+            $('#forgot-password-frm button[type="submit"]').removeAttr('disabled').html('Reset Password');
         }
-        ?>
-    </div>
-</body>
-</html>
+    });
+});
+</script>

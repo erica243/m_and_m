@@ -44,6 +44,21 @@ $message_count = 0; // Replace with dynamic count from your database
     font-size: 12px;
     font-weight: bold;
 }
+.delivery-form {
+    margin-top: 20px; /* Space above the form */
+    padding: 15px; /* Padding for the form */
+    background-color: #fff; /* White background for the form */
+    border-radius: 5px; /* Rounded corners */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+}
+
+.delivery-form input {
+    width: 100%; /* Full width for inputs */
+    padding: 10px; /* Padding for inputs */
+    margin: 5px 0; /* Margin between inputs */
+    border: 1px solid #ccc; /* Border for inputs */
+    border-radius: 4px; /* Rounded corners */
+}
 </style>
 
 <nav id="sidebar" class='mx-lt-5 b-lightblue'>
@@ -74,7 +89,8 @@ $message_count = 0; // Replace with dynamic count from your database
         <?php if ($_SESSION['login_id'] == 1): ?>
             <a href="index.php?page=users" class="nav-item nav-users">
                 <span class='icon-field'><i class="fa fa-users"></i></span> Users
-            </a>
+            
+        
             <a href="index.php?page=site_settings" class="nav-item nav-site_settings">
                 <span class='icon-field'><i class="fa fa-cogs"></i></span> Site Settings
             </a>
