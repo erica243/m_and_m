@@ -1,12 +1,21 @@
 <?php
 require_once("./db_connect.php");
 
-// Fetch data for total sales and pending/confirmed orders
-$total_sales_result = $conn->query("SELECT SUM(p.price * ol.qty) AS total_sales 
-                                    FROM orders o 
-                                    JOIN order_list ol ON o.id = ol.order_id
-                                    JOIN product_list p ON ol.product_id = p.id 
-                                    WHERE o.status = 1");
+// Fetch data for total sales including shipping for confirmed, delivered, or other specified statuses
+$total_sales_result = $conn->query("
+    SELECT 
+        SUM((p.price * ol.qty) + IFNULL(s.shipping_amount, 0)) AS total_sales
+    FROM 
+        orders o
+    JOIN 
+        order_list ol ON o.id = ol.order_id
+    JOIN 
+        product_list p ON ol.product_id = p.id
+    LEFT JOIN 
+        shipping_info s ON o.address = s.address
+    WHERE 
+        o.delivery_status IN ('pending','confirmed', 'preparing', 'ready','in_transit','delivered') -- Replace 'other_status' with any additional status
+");
 $total_sales = $total_sales_result->fetch_assoc()['total_sales'];
 
 $cancelled_orders = $conn->query("SELECT * FROM orders WHERE status = 0")->num_rows;
@@ -14,11 +23,13 @@ $confirmed_orders = $conn->query("SELECT * FROM orders WHERE status = 1")->num_r
 
 // Fetch data for pie chart (sales by address)
 $sales_by_address_data = $conn->query("
-    SELECT o.address AS address, SUM(ol.qty * p.price) AS total_sales 
+    SELECT o.address AS address, SUM((p.price * ol.qty) + IFNULL(s.shipping_amount, 0)) AS total_sales 
     FROM order_list ol
     JOIN product_list p ON ol.product_id = p.id
     JOIN orders o ON ol.order_id = o.id
-    WHERE o.status = 1
+    LEFT JOIN 
+        shipping_info s ON o.address = s.address
+    WHERE o.delivery_status IN ('pending','confirmed', 'preparing', 'ready','in_transit','delivered')
     GROUP BY o.address
     ORDER BY total_sales DESC
 ");
@@ -32,11 +43,13 @@ while ($row = $sales_by_address_data->fetch_assoc()) {
 $monthly_sales_data = [];
 for ($i = 0; $i < 12; $i++) {
     $date = date('Y-m', strtotime("-$i months"));
-    $monthly_sales_result = $conn->query("SELECT SUM(p.price * ol.qty) AS monthly_sales 
+    $monthly_sales_result = $conn->query("SELECT SUM((p.price * ol.qty) + IFNULL(s.shipping_amount, 0)) AS monthly_sales 
                                           FROM orders o 
                                           JOIN order_list ol ON o.id = ol.order_id
                                           JOIN product_list p ON ol.product_id = p.id 
-                                          WHERE o.status = 1 AND DATE_FORMAT(o.created_at, '%Y-%m') = '$date'");
+                                          LEFT JOIN 
+        shipping_info s ON o.address = s.address
+                                          WHERE  o.delivery_status IN ('pending','confirmed', 'preparing', 'ready','in_transit','delivered') AND DATE_FORMAT(o.created_at, '%Y-%m') = '$date'");
     $monthly_sales = $monthly_sales_result->fetch_assoc()['monthly_sales'];
     $month_name = date('F', strtotime($date));
 

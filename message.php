@@ -105,7 +105,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 
     // Insert the message into the database
-    $sql = "INSERT INTO messages (email, order_number, message, image_path) 
+    $sql = "INSERT INTO messages (email, order_number, message, photo_path) 
             VALUES ('$email', '$order_number', '$message', '$image_path')";
     
     if ($conn->query($sql)) {

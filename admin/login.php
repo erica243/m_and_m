@@ -31,18 +31,17 @@
       height: calc(100%);
       background: white;
     }
-    #login-right{
-		position: absolute;
-		right:0;
-		width:40%;
-		height: calc(100%);
-		background:white;
-		display: flex;
-		align-items: center;
-		justify-content: center; /* Added to center the card horizontally */
-		background-image: linear-gradient(-225deg, #E3FDF5 0%, #FFE6FA 100%);
-background-image: linear-gradient(to top, #a8edea 0%, #fed6e3 100%);
-	}
+    #login-right {
+      position: absolute;
+      right:0;
+      width:40%;
+      height: calc(100%);
+      background:white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-image: linear-gradient(to top, #a8edea 0%, #fed6e3 100%);
+    }
     #login-left {
       position: absolute;
       left: 0;
@@ -104,6 +103,23 @@ background-image: linear-gradient(to top, #a8edea 0%, #fed6e3 100%);
       color: #007bff;
       font-size: 0.875rem;
     }
+    .form-message {
+      margin-bottom: 15px;
+      text-align: center;
+    }
+    .alert {
+      padding: 10px;
+      margin-bottom: 15px;
+      border-radius: 4px;
+    }
+    .alert-danger {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+    .alert-success {
+      background-color: #d4edda;
+      color: #155724;
+    }
   </style>
 
 </head>
@@ -118,30 +134,54 @@ background-image: linear-gradient(to top, #a8edea 0%, #fed6e3 100%);
     <div id="login-right">
       <div class="card col-md-8">
         <div class="card-body">
-          <form id="login-form">
-            <div class="form-group">
-              <label for="username" class="control-label">Username</label>
-              <input type="email" id="username" name="username" autofocus class="form-control">
-            </div>
-            <div class="form-group">
-              <label for="password" class="control-label">Password</label>
-              <div class="input-group">
-                <input type="password" id="password" name="password" class="form-control">
-                <div class="input-group-append">
-                  <span class="input-group-text show-password" id="password-toggle">
-                    <i class="fa fa-eye"></i>
-                  </span>
+          <div id="login-container">
+            <form id="login-form">
+              <div id="form-message-container"></div>
+              <div class="form-group">
+                <label for="username" class="control-label">Username</label>
+                <input type="email" id="username" name="username" autofocus class="form-control" required>
+              </div>
+              <div class="form-group">
+                <label for="password" class="control-label">Password</label>
+                <div class="input-group">
+                  <input type="password" id="password" name="password" class="form-control" required>
+                  <div class="input-group-append">
+                    <span class="input-group-text show-password" id="password-toggle">
+                      <i class="fa fa-eye"></i>
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div class="form-group text-center">
-    <a href="./../" class="text-dark">Back to Website</a>
-</div>
-<center><button class="btn-sm btn-block btn-wave col-md-4 btn-dark">Login</button></center>
-<div class="form-group text-center">
-    <a href="forgot_password.php" class="text-dark">Forgot Password?</a>
-</div>
+              <div class="form-group text-center">
+                <a href="./../" class="text-dark">Back to Website</a>
+              </div>
+              <center>
+                <button type="submit" class="btn-sm btn-block btn-wave col-md-4 btn-dark">Login</button>
+              </center>
+              <div class="form-group text-center mt-2">
+                <a href="#" class="text-dark forgot-password-link">Forgot Password?</a>
+              </div>
+            </form>
 
+            <form id="forgot-password-form" style="display:none;">
+              <div id="forgot-form-message-container"></div>
+              <div class="form-message">
+                <h4>Reset Password</h4>
+                <p>Enter your email to receive a password reset link</p>
+              </div>
+              <div class="form-group">
+                <label for="reset-email" class="control-label">Email</label>
+                <input type="email" id="reset-email" name="reset-email" class="form-control" required>
+              </div>
+              <div class="form-group text-center">
+                <a href="#" class="text-dark return-to-login">Back to Login</a>
+              </div>
+              <center>
+                <button type="submit" class="btn-sm btn-block btn-wave col-md-4 btn-dark">Reset Password</button>
+              </center>
+            </form>
+          </div>
+        </div>
       </div>
     </div>
   </main>
@@ -152,6 +192,7 @@ background-image: linear-gradient(to top, #a8edea 0%, #fed6e3 100%);
   <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js"></script>
   <script>
     $(document).ready(function() {
+      // Password toggle functionality
       $('#password-toggle').click(function() {
         var passwordField = $('#password');
         var passwordFieldType = passwordField.attr('type');
@@ -164,25 +205,88 @@ background-image: linear-gradient(to top, #a8edea 0%, #fed6e3 100%);
         }
       });
 
-      $('#login-form').submit(function(e) {
+      // Switch to forgot password form
+      $('.forgot-password-link').click(function(e) {
         e.preventDefault();
-        $('#login-form button[type="button"]').attr('disabled', true).html('Logging in...');
-        if ($(this).find('.alert-danger').length > 0)
-          $(this).find('.alert-danger').remove();
+        $('#login-form').hide();
+        $('#forgot-password-form').show();
+      });
+
+      // Return to login form
+      $('.return-to-login').click(function(e) {
+        e.preventDefault();
+        $('#forgot-password-form').hide();
+        $('#login-form').show();
+      });
+
+      // Login form submission
+      $('#login-form').on('submit', function(e) {
+        e.preventDefault();
+        var form = $(this);
+        var submitButton = form.find('button[type="submit"]');
+        
+        // Clear previous messages
+        $('#form-message-container').empty();
+        
+        submitButton.prop('disabled', true).html('Logging in...');
+        
         $.ajax({
           url: 'ajax.php?action=login',
           method: 'POST',
-          data: $(this).serialize(),
-          error: err => {
+          data: form.serialize(),
+          error: function(err) {
             console.log(err);
-            $('#login-form button[type="button"]').removeAttr('disabled').html('Login');
+            submitButton.prop('disabled', false).html('Login');
+            $('#form-message-container').html('<div class="alert alert-danger">An error occurred. Please try again.</div>');
           },
           success: function(resp) {
             if (resp == 1) {
               location.href = 'index.php?page=home';
             } else {
-              $('#login-form').prepend('<div class="alert alert-danger">Username or password is incorrect.</div>');
-              $('#login-form button[type="button"]').removeAttr('disabled').html('Login');
+              submitButton.prop('disabled', false).html('Login');
+              $('#form-message-container').html('<div class="alert alert-danger">Username or password is incorrect.</div>');
+            }
+          }
+        });
+      });
+
+      // Forgot Password form submission
+      $('#forgot-password-form').on('submit', function(e) {
+        e.preventDefault();
+        var form = $(this);
+        var submitButton = form.find('button[type="submit"]');
+        var resetEmail = $('#reset-email').val();
+        
+        // Clear previous messages
+        $('#forgot-form-message-container').empty();
+        
+        submitButton.prop('disabled', true).html('Sending...');
+        
+        $.ajax({
+          url: 'forgot_password.php',
+          method: 'POST',
+          data: { 
+            action: 'forgot_password', 
+            email: resetEmail 
+          },
+          error: function(err) {
+            console.log(err);
+            submitButton.prop('disabled', false).html('Reset Password');
+            $('#forgot-form-message-container').html('<div class="alert alert-danger">An error occurred. Please try again.</div>');
+          },
+          success: function(resp) {
+            submitButton.prop('disabled', false).html('Reset Password');
+            try {
+              var response = JSON.parse(resp);
+              if (response.status === 'success') {
+                $('#forgot-form-message-container').html('<div class="alert alert-success">' + response.message + '</div>');
+                // Optional: Clear the email field after successful submission
+                $('#reset-email').val('');
+              } else {
+                $('#forgot-form-message-container').html('<div class="alert alert-danger">' + response.message + '</div>');
+              }
+            } catch (e) {
+              $('#forgot-form-message-container').html('<div class="alert alert-danger">Unable to process request.</div>');
             }
           }
         });

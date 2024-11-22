@@ -112,22 +112,41 @@ $shippingAmount = $shippingResult->fetch_assoc()['shipping_amount'] ?? 0;
     </table>
     
     <div class="text-center mt-4">
-        <button class="btn btn-primary" id="confirm" type="button" onclick="confirm_order()" <?php echo $orderStatus == 1 ? 'disabled' : '' ?>>Confirm</button>
+      <!--  <button class="btn btn-primary" id="confirm" type="button" onclick="confirm_order()" <?php echo $orderStatus == 1 ? 'disabled' : '' ?>>Confirm</button>-->
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-        <button class="btn btn-success" type="button" onclick="print_receipt()">Print Receipt</button>
+       <!-- <button class="btn btn-success" type="button" onclick="print_receipt()">Print Receipt</button>-->
         <button class="btn btn-danger" type="button" id="delete_order" onclick="delete_order()">Delete Order</button>
 
-        <!-- Delivery Status Dropdown -->
-        <label for="delivery_status" class="mt-3">Update Delivery Status:</label>
-        <select id="delivery_status" class="form-control w-50 mx-auto mt-2" onchange="update_delivery_status()">
-            <option value="pending" <?php echo $deliveryStatus == 'pending' ? 'selected' : ''; ?>>Pending</option>
-            <option value="confirmed" <?php echo $deliveryStatus == 'confirmed' ? 'selected' : ''; ?>>Confirmed</option>
-            <option value="preparing" <?php echo $deliveryStatus == 'preparing' ? 'selected' : ''; ?>>Preparing</option>
-            <option value="ready" <?php echo $deliveryStatus == 'ready' ? 'selected' : ''; ?>>Ready For Delivery</option>
-            <option value="in_transit" <?php echo $deliveryStatus == 'in_transit' ? 'selected' : ''; ?>>In transit</option>
-            <option value="delivered" <?php echo $deliveryStatus == 'delivered' ? 'selected' : ''; ?>>Delivered</option>
-      
-        </select>
+         <!-- Delivery Status Dropdown -->
+         <label for="delivery_status" class="mt-3">Update Delivery Status:</label>
+<select id="delivery_status" class="form-control w-50 mx-auto mt-2" onchange="update_delivery_status()">
+    <option value="pending" 
+        <?php echo !isset($deliveryStatus) || $deliveryStatus == 'pending' ? 'selected' : 'disabled'; ?>>
+        Pending
+    </option>
+    <option value="confirmed" 
+        <?php echo $deliveryStatus == 'confirmed' ? 'selected' : (!isset($deliveryStatus) || $deliveryStatus == 'pending' ? '' : 'disabled'); ?>>
+        Confirmed
+    </option>
+    <option value="preparing" 
+        <?php echo $deliveryStatus == 'preparing' ? 'selected' : (in_array($deliveryStatus, ['ready', 'in_transit', 'delivered']) ? 'disabled' : ''); ?>>
+        Preparing
+    </option>
+    <option value="ready" 
+        <?php echo $deliveryStatus == 'ready' ? 'selected' : (in_array($deliveryStatus, ['in_transit', 'delivered']) ? 'disabled' : ''); ?>>
+        Ready For Delivery
+    </option>
+    <option value="in_transit" 
+        <?php echo $deliveryStatus == 'in_transit' ? 'selected' : ($deliveryStatus == 'delivered' ? 'disabled' : ''); ?>>
+        In transit
+    </option>
+    <option value="delivered" 
+        <?php echo $deliveryStatus == 'delivered' ? 'selected disabled' : ''; ?>>
+        Delivered
+    </option>
+</select>
+
+
     </div>
 </div>
 

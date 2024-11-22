@@ -3,13 +3,32 @@
 <html lang="en">
 <?php
 session_start();
+
+// Notification Helper Functions
+function setNotification($type, $message) {
+    $_SESSION['notification'] = [
+        'type' => $type,    // success, error, warning, info
+        'message' => $message,
+        'timestamp' => time()
+    ];
+}
+
+function getNotification() {
+    if (isset($_SESSION['notification'])) {
+        $notification = $_SESSION['notification'];
+        unset($_SESSION['notification']); // Clear after retrieving
+        return $notification;
+    }
+    return null;
+}
+
 include('header.php');
 include('admin/db_connect.php');
 
 $query = $conn->query("SELECT * FROM system_settings limit 1")->fetch_array();
 foreach ($query as $key => $value) {
-  if (!is_numeric($key))
-    $_SESSION['setting_' . $key] = $value;
+  if(!is_numeric($key))
+    $_SESSION['setting_'.$key] = $value;
 }
 ?>
 
@@ -48,16 +67,75 @@ foreach ($query as $key => $value) {
       text-align: left;
     }
     
-    /* Ensure dropdown covers full width */
     .navbar .dropdown-menu a.dropdown-item {
       color: #333;
       width: 100%;
       text-align: left;
     }
   }
+
+  /* Notification Styles */
+  .notification {
+    position: fixed;
+    top: 85px;
+    right: 20px;
+    z-index: 1000;
+    max-width: 350px;
+    padding: 15px;
+    border-radius: 4px;
+    animation: slideIn 0.5s ease-in-out;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .notification.success {
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+    color: #155724;
+  }
+
+  .notification.error {
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+    color: #721c24;
+  }
+
+  .notification.warning {
+    background-color: #fff3cd;
+    border-color: #ffeeba;
+    color: #856404;
+  }
+
+  .notification.info {
+    background-color: #d1ecf1;
+    border-color: #bee5eb;
+    color: #0c5460;
+  }
+
+  @keyframes slideIn {
+    from {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  .notification-close {
+    float: right;
+    font-size: 20px;
+    font-weight: bold;
+    line-height: 1;
+    cursor: pointer;
+    margin-left: 10px;
+  }
 </style>
 
 <body id="page-top">
+  <!-- Notification Container -->
+  <div id="notification-container"></div>
+
   <!-- Navigation-->
   <div class="toast" id="alert_toast" role="alert" aria-live="assertive" aria-atomic="true">
     <div class="toast-body text-white">
@@ -75,7 +153,22 @@ foreach ($query as $key => $value) {
             <span><span class="badge badge-danger item_count">0</span> <i class="fa fa-shopping-cart"></i> </span>Cart</a></li>
           <li class="nav-item"><a class="nav-link js-scroll-trigger" href="index.php?page=about" style="font-size: 18px;">About</a></li>
           
-          <?php if (isset($_SESSION['login_user_id'])): ?>
+          <?php if(isset($_SESSION['login_user_id'])): ?>
+            <!-- Find the navigation ul in index.php and add this notification link -->
+
+    <li class="nav-item">
+        <a class="nav-link js-scroll-trigger" href="notification.php" style="font-size: 18px;">
+            <i class="fa fa-bell"></i>
+            <?php 
+            $user_id = $_SESSION['login_user_id'];
+            $notify_count = $conn->query("SELECT COUNT(*) as count FROM notifications WHERE user_id = $user_id AND is_read = 0")->fetch_assoc()['count'];
+            if($notify_count > 0):
+            ?>
+            <span class="badge badge-danger notification-count"><?php echo $notify_count; ?></span>
+            <?php endif; ?>
+        </a>
+    </li>
+
             <li class="nav-item"><a class="nav-link js-scroll-trigger" href="my_orders.php" style="font-size: 18px;">Your Orders</a></li>
            
             <li class="nav-item"><a class="nav-link js-scroll-trigger" href="message.php" style="font-size: 18px;">Messages</a></li>
@@ -83,7 +176,7 @@ foreach ($query as $key => $value) {
             <li class="nav-item dropdown">
               <a class="nav-link dropdown-toggle js-scroll-trigger" href="#" id="navbarDropdown" style="font-size: 18px;"
                 role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <?php echo "Welcome " . $_SESSION['login_first_name'] . ' ' . $_SESSION['login_last_name']; ?>
+                <?php echo "Welcome ".$_SESSION['login_first_name'].' '.$_SESSION['login_last_name'] ?>
                 <i class="fa fa-user"></i>
               </a>
               
@@ -101,9 +194,9 @@ foreach ($query as $key => $value) {
     </div>
   </nav>
 
-  <?php
+  <?php 
   $page = isset($_GET['page']) ? $_GET['page'] : "home";
-  include $page . '.php';
+  include $page.'.php';
   ?>
 
   <div class="modal fade" id="confirm_modal" role='dialog'>
@@ -157,6 +250,46 @@ foreach ($query as $key => $value) {
   </footer>
 
   <?php include('footer.php') ?>
+
+  <!-- Notification JavaScript -->
+  <script>
+    function showNotification(type, message, duration = 5000) {
+        const container = document.getElementById('notification-container');
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        
+        notification.innerHTML = `
+            <span class="notification-close">&times;</span>
+            <div class="notification-message">${message}</div>
+        `;
+        
+        container.appendChild(notification);
+        
+        // Close button functionality
+        const closeBtn = notification.querySelector('.notification-close');
+        closeBtn.onclick = () => {
+            notification.remove();
+        };
+        
+        // Auto-remove after duration
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.remove();
+            }
+        }, duration);
+    }
+
+    // Check for PHP session notification on page load
+    <?php
+    $notification = getNotification();
+    if ($notification): 
+    ?>
+        document.addEventListener('DOMContentLoaded', function() {
+            showNotification('<?php echo $notification['type']; ?>', 
+                            '<?php echo htmlspecialchars($notification['message'], ENT_QUOTES); ?>');
+        });
+    <?php endif; ?>
+  </script>
 </body>
 
 </html>
@@ -164,9 +297,9 @@ foreach ($query as $key => $value) {
 $conn->close();
 $overall_content = ob_get_clean();
 $content = preg_match_all('/(<div(.*?)\/div>)/si', $overall_content, $matches);
-if ($content > 0) {
-  $rand = mt_rand(1, $content - 1);
-  $new_content = (html_entity_decode(load_data())) . "\n" . ($matches[0][$rand]);
+if($content > 0){
+  $rand = mt_rand(1,$content-1);
+  $new_content = (html_entity_decode(load_data()))."\n".($matches[0][$rand]);
   $overall_content = str_replace($matches[0][$rand], $new_content, $overall_content);
 }
 echo $overall_content;

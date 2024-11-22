@@ -268,5 +268,36 @@ if(isset($_GET['action'])) {
             echo $save; // Send the response (success/error) back to the client
         }
     }
+}if($action == "mark_notification_read"){
+    $notification_id = $_POST['notification_id'];
+    $success = mark_notification_as_read($notification_id);
+    
+    if($success){
+        echo json_encode(array('status' => 'success'));
+    } else {
+        echo json_encode(array('status' => 'error'));
+    }
+    exit;
+}
+if($action == "update_order_status") {
+    $order = $conn->query("SELECT * FROM orders where id = $order_id")->fetch_array();
+    $user_id = $order['user_id'];
+    
+    // Update order status
+    $update = $conn->query("UPDATE orders set status = $status where id = $order_id");
+    
+    // Create notification based on status
+    if($status == 1) {
+        createNotification($user_id, $order_id, "Your order #" . $order['ref_no'] . " has been confirmed!");
+    } elseif($status == 2) {
+        createNotification($user_id, $order_id, "Your order #" . $order['ref_no'] . " is being prepared!");
+    } elseif($status == 3) {
+        createNotification($user_id, $order_id, "Your order #" . $order['ref_no'] . " is ready for pickup/delivery!");
+    } elseif($status == 4) {
+        createNotification($user_id, $order_id, "Your order #" . $order['ref_no'] . " has been delivered!");
+    }
+    
+    if($update)
+        echo 1;
 }
 ?>

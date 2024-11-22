@@ -7,7 +7,10 @@ if (!function_exists('get_new_orders_count')) {
     function get_new_orders_count() {
         global $conn;
 
-        $sql = "SELECT COUNT(*) AS total FROM orders WHERE status = 0"; // Ensure 'status' exists
+        // Include conditions for empty or null delivery_status
+        $sql = "SELECT COUNT(*) AS total 
+                FROM orders 
+                WHERE delivery_status = '0' OR delivery_status IS NULL OR delivery_status = ''";
         $result = $conn->query($sql);
 
         if ($result) {
@@ -19,23 +22,23 @@ if (!function_exists('get_new_orders_count')) {
     }
 }
 
-
 if (!function_exists('get_unread_messages_count')) {
-  function get_unread_messages_count() {
-      global $conn;
+    function get_unread_messages_count() {
+        global $conn;
 
-      // Fetch unread messages based on status
-      $sql = "SELECT COUNT(*) AS total FROM messages WHERE status = 0";
-      $result = $conn->query($sql);
+        // Fetch unread messages based on status
+        $sql = "SELECT COUNT(*) AS total FROM messages WHERE status = 0";
+        $result = $conn->query($sql);
 
-      if ($result) {
-          $row = $result->fetch_assoc();
-          return $row['total'];
-      } else {
-          return 0; // In case of error
-      }
-  }
+        if ($result) {
+            $row = $result->fetch_assoc();
+            return $row['total'];
+        } else {
+            return 0; // In case of error
+        }
+    }
 }
+
 // Fetch new orders count
 $newOrdersCount = get_new_orders_count();
 

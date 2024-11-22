@@ -651,5 +651,11 @@ function reset_password() {
         return json_encode(['status' => 'error', 'message' => 'Failed to reset password']);
     }
 }
-
+function createNotification($user_id, $order_id, $message) {
+    global $conn;
+    $sql = "INSERT INTO notifications (user_id, order_id, message) VALUES (?, ?, ?)";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("iis", $user_id, $order_id, $message);
+    return $stmt->execute();
+}
 ?>

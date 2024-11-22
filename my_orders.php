@@ -422,8 +422,15 @@ $result = $stmt->get_result();
         <button class="print-button" onclick="printReceipt(<?php echo $row['id']; ?>)">Print Receipt</button>
     <?php endif; ?>
 </td>
-
-                    <td>
+<td>  <?php if (strcasecmp($row['delivery_status'], '') == 0): ?>
+<a href="comment.php?order_id=<?php echo $row['id']; ?>" class="inline-block px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-center">
+        Message
+    </a>
+    <?php else: ?>
+        <span class="text-muted">Message no longer available</span>
+    <?php endif; ?>
+    </td>  <td>
+                        
                         <form method="POST">
                             <input type="hidden" name="order_id" value="<?php echo $row['id']; ?>">
                             <button type="submit" name="delete_order">Delete Order</button>

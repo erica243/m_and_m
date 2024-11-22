@@ -12,20 +12,35 @@ if (isset($_POST['reply'])) {
     $message_id = $_POST['message_id'];
     $reply = $_POST['reply_message'];
 
-    // Update the messages table with the reply
-    $stmt = $conn->prepare("UPDATE messages SET admin_reply = ?, reply_date = NOW(), status = 1 WHERE id = ?");
-    $stmt->bind_param("si", $reply, $message_id);
+    // Check if connection is successful
+    if (!$conn) {
+        die("Connection failed: " . mysqli_connect_error());
+    }
+
+    // Prepare the SQL query
+    $stmt = $conn->prepare("UPDATE messages SET admin_reply = ?, reply_date = NOW(), status = 1 WHERE user_id = ?");
+    
+    if ($stmt === false) {
+        die("Error preparing statement: " . $conn->error); // Error in the query
+    }
+
+    // Bind parameters and execute the statement
+    $stmt->bind_param("si", $reply, $message_id); // "s" for string, "i" for integer
     if ($stmt->execute()) {
         echo "<script>alert('Reply sent successfully'); window.location='message.php';</script>";
     } else {
         echo "<script>alert('Failed to send reply');</script>";
     }
+
+    // Close the prepared statement
+    $stmt->close();
 }
 
-// Fetch messages without admin replies
+// Fetch messages without admin replies, but include user reply
 $stmt = $conn->prepare("SELECT * FROM messages WHERE admin_reply IS NULL ORDER BY created_at DESC");
 $stmt->execute();
 $messages = $stmt->get_result();
+
 ?>
 
 <!DOCTYPE html>
@@ -80,67 +95,67 @@ $messages = $stmt->get_result();
                 <tr>
                     <th>Message ID</th>
                     <th>Email</th>
-                    <th>Order Number</th>
+                    <th>Order Number</th> <!-- New column for order number -->
                     <th>Message</th>
                     <th>Date</th>
                     <th>Image</th>
+                    <th>User Reply</th> <!-- New column for user reply -->
                     <th>Reply</th>
                 </tr>
             </thead>
             <tbody>
             <?php while ($row = $messages->fetch_assoc()) : ?>
-                    <tr>
-                        <td><?php echo htmlspecialchars($row['id']); ?></td>
-                        <td><?php echo htmlspecialchars($row['email']); ?></td>
-                        <td><?php echo htmlspecialchars($row['order_number']); ?></td>
-                        <td><?php echo htmlspecialchars($row['message']); ?></td>
-                        <td><?php echo date('Y-m-d H:i:s', strtotime($row['created_at'])); ?></td>
-                        <td>
-                        <?php
-    if (!empty($row['image_path'])) {
-        // Remove any leading 'uploads/' from the stored filename if it exists
-        $image_path = htmlspecialchars($row['image_path']);
-        if (strpos($image_path, 'uploads/') === 0) {
-            $image_path = substr($image_path, strlen('uploads/'));
-        }
+                <tr>
+                    <td><?php echo htmlspecialchars($row['user_id']); ?></td>
+                    <td><?php echo htmlspecialchars($row['email']); ?></td>
+                    <td><?php echo htmlspecialchars($row['order_number']); ?></td> <!-- Display order number -->
+                    <td><?php echo htmlspecialchars($row['message']); ?></td>
+                    <td><?php echo date('Y-m-d H:i:s', strtotime($row['created_at'])); ?></td>
+                    <td>
+                    <?php
+                        if (!empty($row['image_path'])) {
+                            // Remove any leading 'uploads/' from the stored filename if it exists
+                            $image_path = htmlspecialchars($row['image_path']);
+                            if (strpos($image_path, 'uploads/') === 0) {
+                                $image_path = substr($image_path, strlen('uploads/'));
+                            }
 
-        // Now construct the full image path correctly
-        $full_image_path = "../uploads/" . $image_path;
-        
-        
-        // Check if file exists and is readable
-        if (file_exists($full_image_path)) {
-           
-            
-            if (is_readable($full_image_path)) {
-                $finfo = finfo_open(FILEINFO_MIME_TYPE);
-                $mime_type = finfo_file($finfo, $full_image_path);
-                finfo_close($finfo);
-                
-                if (strpos($mime_type, 'image') === 0) {
-                    echo '<a href="' . htmlspecialchars($full_image_path) . '" data-fancybox="gallery" data-caption="User Image">';
-                    echo '<img src="' . htmlspecialchars($full_image_path) . '" alt="User Image" style="max-width: 100px; max-height: 100px;">';
-                    echo '</a>';
-                } else {
-                    echo 'Invalid file type';
-                }
-            } else {
-                echo 'Image file not readable';
-            }
-        } else {
-            echo 'Image file not found';
-        }
-    } else {
-        echo 'No image available';
-    }
-    ?>
-        </td>
-        <td>
-            <button class="btn btn-primary" onclick="showReplyForm(<?php echo $row['id']; ?>)">Reply</button>
-        </td>
-    </tr>
-<?php endwhile; ?>
-
+                            // Now construct the full image path correctly
+                            $full_image_path = "../uploads/" . $image_path;
+                            
+                            // Check if file exists and is readable
+                            if (file_exists($full_image_path)) {
+                                if (is_readable($full_image_path)) {
+                                    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+                                    $mime_type = finfo_file($finfo, $full_image_path);
+                                    finfo_close($finfo);
+                                    
+                                    if (strpos($mime_type, 'image') === 0) {
+                                        echo '<a href="' . htmlspecialchars($full_image_path) . '" data-fancybox="gallery" data-caption="User Image">';
+                                        echo '<img src="' . htmlspecialchars($full_image_path) . '" alt="User Image" style="max-width: 100px; max-height: 100px;">';
+                                        echo '</a>';
+                                    } else {
+                                        echo 'Invalid file type';
+                                    }
+                                } else {
+                                    echo 'Image file not readable';
+                                }
+                            } else {
+                                echo 'Image file not found';
+                            }
+                        } else {
+                            echo 'No image available';
+                        }
+                    ?>
+                    </td>
+                    <td>
+                        <?php echo htmlspecialchars($row['user_reply']) ?: 'No reply from user'; ?> <!-- Display user reply if available -->
+                    </td>
+                    <td>
+                        <button class="btn btn-primary" onclick="showReplyForm(<?php echo $row['user_id']; ?>)">Reply</button>
+                    </td>
+                </tr>
+            <?php endwhile; ?>
             </tbody>
         </table>    
     </main>
@@ -174,7 +189,7 @@ $messages = $stmt->get_result();
     <script>
         function showReplyForm(messageId) {
             $('#message_id').val(messageId);
-            $('#reply_message').val('');
+            $('#reply_message').val(''); // Clear previous reply
             $('#reply_modal').modal('show');
         }
     </script>

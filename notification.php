@@ -1,26 +1,33 @@
 <?php
 session_start();
-include 'db_connect.php'; // Include your database connection
+include 'admin/db_connect.php';
 
-// Check if the user is logged in
 if (!isset($_SESSION['login_user_id'])) {
-    header("Location: index.php?page=home"); // Redirect to home if not logged in
+    header('Location: login.php');
     exit();
 }
 
-// Get the logged-in user's ID
 $userId = $_SESSION['login_user_id'];
 
-// Fetch notifications for the logged-in user
-function getNotifications($userId) {
-    global $conn;
-    $stmt = $conn->prepare("SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC");
-    $stmt->bind_param("i", $userId);
-    $stmt->execute();
-    return $stmt->get_result();
-}
+// Fetch unread notifications for the user, including order confirmations or admin replies
+$query = "
+    SELECT n.message, n.created_at, n.type, o.delivery_status
+    FROM notifications n
+    LEFT JOIN orders o ON n.order_id = o.id
+    WHERE n.user_id = ? AND n.is_read = 0 
+    ORDER BY n.created_at DESC
+";
+$stmt = $conn->prepare($query);
+$stmt->bind_param("i", $userId);
+$stmt->execute();
+$result = $stmt->get_result();
 
-$notifications = getNotifications($userId);
+$notifications = [];
+while ($row = $result->fetch_assoc()) {
+    $notifications[] = $row;
+}
+$stmt->close();
+$conn->close();
 ?>
 
 <!DOCTYPE html>
@@ -28,57 +35,33 @@ $notifications = getNotifications($userId);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Notifications</title>
-    <link rel="stylesheet" href="path/to/bootstrap.css"> <!-- Include Bootstrap CSS -->
-    <link rel="stylesheet" href="path/to/font-awesome.css"> <!-- Include Font Awesome CSS -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> <!-- jQuery -->
-    <script src="path/to/bootstrap.js"></script> <!-- Include Bootstrap JS -->
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-        }
-        .notification-item {
-            padding: 15px;
-            border-bottom: 1px solid #ddd;
-        }
-        .notification-item:hover {
-            background-color: #f1f1f1;
-        }
-    </style>
+    <title>User Notifications</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 </head>
 <body>
-    <div class="container mt-5">
-        <h2>Your Notifications</h2>
-        <?php if ($notifications->num_rows > 0): ?>
-            <?php while ($row = $notifications->fetch_assoc()): ?>
-                <div class="notification-item" onclick="markAsRead(<?php echo $row['id']; ?>)">
-                    <p><?php echo $row['message']; ?></p>
-                    <small><?php echo $row['created_at']; ?></small>
-                    <?php if ($row['is_read'] == 0): ?>
-                        <span class="badge badge-danger">New</span>
+<div class="container mt-5">
+    <h3>Notifications</h3>
+    <ul class="list-group">
+        <?php if (count($notifications) > 0): ?>
+            <?php foreach ($notifications as $notification): ?>
+                <li class="list-group-item">
+                    <p><?php echo htmlspecialchars($notification['message']); ?></p>
+                    <small class="text-muted">Received: <?php echo $notification['created_at']; ?></small>
+                    
+                    <!-- Display specific icons or labels for types -->
+                    <?php if ($notification['type'] == 'order_confirmation'): ?>
+                        <span class="badge badge-success">Order Confirmed</span>
+                    <?php elseif ($notification['type'] == 'admin_reply'): ?>
+                        <span class="badge badge-info">Admin Replied</span>
+                    <?php elseif ($notification['delivery_status'] == 'Confirmed'): ?>
+                        <span class="badge badge-warning">Order Delivered</span>
                     <?php endif; ?>
-                </div>
-            <?php endwhile; ?>
+                </li>
+            <?php endforeach; ?>
         <?php else: ?>
-            <p>No notifications found.</p>
+            <li class="list-group-item">No new notifications.</li>
         <?php endif; ?>
-    </div>
-
-    <script>
-    function markAsRead(notificationId) {
-        $.ajax({
-            url: 'mark_notification.php', // PHP file to mark notification as read
-            method: 'POST',
-            data: { id: notificationId },
-            success: function(response) {
-                // Reload the page to show updated notifications
-                location.reload();
-            },
-            error: function() {
-                alert('An error occurred while marking the notification as read.');
-            }
-        });
-    }
-    </script>
+    </ul>
+</div>
 </body>
 </html>
