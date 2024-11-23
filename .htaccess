@@ -32,3 +32,14 @@ RewriteRule \.(jpg|jpeg|png|gif|css|js)$ - [F,L]
   # Disable content sniffing to prevent MIME-type confusion attacks
   Header set X-Content-Type-Options nosniff
 </IfModule>
+# Add to .htaccess
+<FilesMatch "^\.">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Prevent direct access to PHP files
+<FilesMatch "^(?!index\.php$).*\.php$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
